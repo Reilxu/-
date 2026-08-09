@@ -254,8 +254,10 @@ const App = {
 
   getNavBadge(key) {
     if (key === 'today') {
-      const items = Store.getTodayItems().filter(i => !i.done);
-      return items.length > 0 ? items.length : '';
+      const undoneTodos = Store.getTodayItems().filter(i => !i.done).length;
+      const unreadAlerts = Store.getOrRefreshAlerts().filter(a => !a.done).length;
+      const total = undoneTodos + unreadAlerts;
+      return total > 0 ? total : '';
     }
     return '';
   },
@@ -489,7 +491,8 @@ const App = {
     const topics = Store.getTopics();
     const publishedCount = contentItems.filter(c => c.status === 'published').length;
 
-    const dashboardAlert = this.computeDashboardAlert();
+    const alerts = Store.getOrRefreshAlerts();
+    const unreadAlerts = alerts.filter(a => !a.done);
     const yesterdayStats = this.getYesterdayVideoStats();
 
     let html = `
@@ -506,10 +509,13 @@ const App = {
           <div class="today-alerts-panel">
             <div class="panel-header">
               <div class="panel-title">提醒 & 动态</div>
-              <span class="panel-count">${dashboardAlert.type === 'alert' ? '1 条' : '正常'}</span>
+              <div class="panel-actions">
+                ${unreadAlerts.length === 0 && alerts.length > 0 ? `<button class="panel-icon-btn" id="clearReadAlertsBtn" title="清空已读">${Icons.trash}</button>` : ''}
+                <span class="panel-count">${unreadAlerts.length > 0 ? unreadAlerts.length + ' 条' : '正常'}</span>
+              </div>
             </div>
             <div class="alert-list">
-              ${this.renderDashboardAlert(dashboardAlert)}
+              ${this.renderTodayAlerts(alerts)}
             </div>
           </div>
         </div>
@@ -627,65 +633,16 @@ const App = {
       `;
     }
     return alerts.map(a => `
-      <div class="alert-item">
-        <span class="alert-dot" style="background: var(--danger);"></span>
+      <div class="alert-item ${a.done ? 'done' : ''}" data-id="${this.esc(a.id)}">
+        <div class="alert-check" data-id="${this.esc(a.id)}">
+          ${a.done ? Icons.check : ''}
+        </div>
         <div class="alert-content">
-          <div class="alert-title">${this.esc(a.title)}</div>
-          <div class="alert-desc">${this.esc(a.desc)}</div>
+          <div class="alert-title ${a.done ? 'done' : ''}">${this.esc(a.title)}</div>
+          <div class="alert-desc ${a.done ? 'done' : ''}">${this.esc(a.desc)}</div>
         </div>
       </div>
     `).join('');
-  },
-
-  computeDashboardAlert() {
-    const videos = Store.getVideos();
-    if (videos.length === 0) {
-      return { type: 'normal', title: '当前数据正常', desc: '暂无数据看板数据，请在数据看板上传视频数据' };
-    }
-
-    const groups = {};
-    videos.forEach(v => {
-      const date = (v.createdAt || v.publishDate || '').slice(0, 10);
-      if (!date) return;
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(v);
-    });
-
-    const dates = Object.keys(groups).sort().reverse();
-    if (dates.length < 2) {
-      return { type: 'normal', title: '当前数据正常', desc: '数据量不足，暂无法与前次上传进行对照' };
-    }
-
-    const latest = groups[dates[0]];
-    const previous = groups[dates[1]];
-
-    const avg = (arr, key) => arr.reduce((sum, v) => sum + (Number(v[key]) || 0), 0) / arr.length;
-    const avgInteraction = (arr) => arr.reduce((sum, v) => sum + (Number(v.likes) || 0) + (Number(v.comments) || 0), 0) / arr.length;
-
-    const latestViews = avg(latest, 'views');
-    const previousViews = avg(previous, 'views');
-    const latestInteractions = avgInteraction(latest);
-    const previousInteractions = avgInteraction(previous);
-
-    const viewChange = previousViews === 0 ? 0 : (latestViews - previousViews) / previousViews;
-    const interactionChange = previousInteractions === 0 ? 0 : (latestInteractions - previousInteractions) / previousInteractions;
-
-    const viewChangePct = Math.round(viewChange * 100);
-    const interactionChangePct = Math.round(interactionChange * 100);
-
-    if (viewChange < -0.2 || Math.abs(interactionChange) > 0.2) {
-      let desc = '';
-      if (viewChange < -0.2) {
-        desc += `最新上传视频平均播放量下降 ${Math.abs(viewChangePct)}%；`;
-      }
-      if (Math.abs(interactionChange) > 0.2) {
-        const direction = interactionChange > 0 ? '上升' : '下降';
-        desc += `平均互动数（点赞+评论）${direction} ${Math.abs(interactionChangePct)}%；`;
-      }
-      return { type: 'alert', title: '数据看板流量异常', desc: desc.slice(0, -1) + '，建议检查内容方向或发布策略' };
-    }
-
-    return { type: 'normal', title: '当前数据正常', desc: `播放量较上次变化 ${viewChangePct >= 0 ? '+' : ''}${viewChangePct}%，互动数变化 ${interactionChangePct >= 0 ? '+' : ''}${interactionChangePct}%` };
   },
 
   getYesterdayVideoStats() {
@@ -698,19 +655,6 @@ const App = {
     const interactions = videos.reduce((sum, v) => sum + (Number(v.likes) || 0) + (Number(v.comments) || 0), 0);
 
     return { views, interactions, count: videos.length };
-  },
-
-  renderDashboardAlert(alert) {
-    const isAlert = alert.type === 'alert';
-    return `
-      <div class="alert-item">
-        <span class="alert-dot" style="background: ${isAlert ? 'var(--danger)' : '#4A6B3A'};"></span>
-        <div class="alert-content">
-          <div class="alert-title">${this.esc(alert.title)}</div>
-          <div class="alert-desc">${this.esc(alert.desc)}</div>
-        </div>
-      </div>
-    `;
   },
 
   formatNumber(num) {
@@ -904,6 +848,26 @@ const App = {
         this.confirmDeleteTodo(id, item?.title);
       });
     });
+
+    // 提醒 & 动态：勾选已读
+    document.querySelectorAll('.alert-check').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = el.dataset.id;
+        Store.toggleAlertDone(id);
+        this.navigate('today');
+      });
+    });
+    const clearReadAlertsBtn = document.getElementById('clearReadAlertsBtn');
+    if (clearReadAlertsBtn) {
+      clearReadAlertsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        Store.clearReadAlerts();
+        this.navigate('today');
+        this.showToast('已清空已读提醒');
+      });
+    }
+
     const addTodoBtn = document.getElementById('addTodoBtn');
     if (addTodoBtn) {
       addTodoBtn.addEventListener('click', (e) => {

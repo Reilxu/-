@@ -20,13 +20,14 @@ const Store = {
     mcnOutput: 'xl_mcn_output',
     videos: 'xl_videos',
     reports: 'xl_reports',
+    alerts: 'xl_alerts',
   },
 
   // 需要同步到云端的 bucket（排除纯缓存类 aiNews / hotTopics）
   SYNC_BUCKETS: [
     'xl_today', 'xl_content', 'xl_topics', 'xl_materials',
     'xl_inbox', 'xl_links', 'xl_ai_chat', 'xl_decomp',
-    'xl_mcn_output', 'xl_videos', 'xl_reports'
+    'xl_mcn_output', 'xl_videos', 'xl_reports', 'xl_alerts'
   ],
 
   // 云端登录态（由 auth.js 通过 setCloudUser 设置）
@@ -283,6 +284,165 @@ const Store = {
       items[idx].completedAt = items[idx].done ? new Date().toISOString() : null;
       this.set(this.KEYS.today, items);
     }
+  },
+
+  /**
+   * 提醒 & 动态：按当前数据生成/刷新提醒列表，并保留用户已读状态。
+   * 返回最新提醒数组（含 done 字段）。
+   * @returns {Array}
+   */
+  getOrRefreshAlerts() {
+    const saved = this.get(this.KEYS.alerts);
+    const generated = this._generateDashboardAlerts();
+    const savedMap = new Map();
+    saved.forEach(a => {
+      const id = a.id || this._alertId(a);
+      savedMap.set(id, a);
+    });
+
+    let changed = false;
+    const merged = generated.map(a => {
+      const id = a.id || this._alertId(a);
+      if (savedMap.has(id)) {
+        const s = savedMap.get(id);
+        return { ...a, id, done: !!s.done, readAt: s.readAt || null, createdAt: s.createdAt || a.createdAt };
+      }
+      changed = true;
+      return { ...a, id, done: false, readAt: null, createdAt: a.createdAt || new Date().toISOString() };
+    });
+
+    // 保留 7 天内仍有效的旧提醒（避免条件变化后立刻消失）
+    const mergedMap = new Map(merged.map(a => [a.id, a]));
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    saved.forEach(s => {
+      const id = s.id || this._alertId(s);
+      if (!mergedMap.has(id) && (s.createdAt || '') > weekAgo) {
+        merged.push({ ...s, id });
+        mergedMap.set(id, merged[merged.length - 1]);
+        changed = true;
+      }
+    });
+
+    if (changed) this.set(this.KEYS.alerts, merged);
+    return merged;
+  },
+
+  /**
+   * 切换提醒已读状态。
+   * @param {string} id
+   */
+  toggleAlertDone(id) {
+    const alerts = this.get(this.KEYS.alerts);
+    const idx = alerts.findIndex((a) => a.id === id);
+    if (idx >= 0) {
+      alerts[idx].done = !alerts[idx].done;
+      alerts[idx].readAt = alerts[idx].done ? new Date().toISOString() : null;
+      this.set(this.KEYS.alerts, alerts);
+    }
+  },
+
+  /**
+   * 清空所有已读提醒。
+   */
+  clearReadAlerts() {
+    const alerts = this.get(this.KEYS.alerts).filter(a => !a.done);
+    this.set(this.KEYS.alerts, alerts);
+  },
+
+  /**
+   * 为提醒生成稳定 ID（按内容哈希，同一异常不重复）。
+   * @param {Object} a
+   * @returns {string}
+   */
+  _alertId(a) {
+    return 'alert_' + this._hashString((a.title || '') + '|' + (a.desc || '') + '|' + (a.category || 'dashboard'));
+  },
+
+  _hashString(str) {
+    let h = 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h = (h << 5) - h + s.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h).toString(36);
+  },
+
+  /**
+   * 根据数据看板等模块生成提醒 & 动态列表。
+   * 当前来源：视频数据看板异常（播放量/互动数波动超过阈值）。
+   * @returns {Array}
+   */
+  _generateDashboardAlerts() {
+    const videos = this.get(this.KEYS.videos);
+    if (videos.length === 0) {
+      return [{
+        type: 'normal',
+        category: 'dashboard',
+        title: '当前数据正常',
+        desc: '暂无数据看板数据，请在数据看板上传视频数据',
+        createdAt: new Date().toISOString()
+      }];
+    }
+
+    const groups = {};
+    videos.forEach(v => {
+      const date = (v.createdAt || v.publishDate || '').slice(0, 10);
+      if (!date) return;
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(v);
+    });
+
+    const dates = Object.keys(groups).sort().reverse();
+    if (dates.length < 2) {
+      return [{
+        type: 'normal',
+        category: 'dashboard',
+        title: '当前数据正常',
+        desc: '数据量不足，暂无法与前次上传进行对照',
+        createdAt: new Date().toISOString()
+      }];
+    }
+
+    const avg = (arr, key) => arr.reduce((sum, v) => sum + (Number(v[key]) || 0), 0) / arr.length;
+    const avgInteraction = (arr) => arr.reduce((sum, v) => sum + (Number(v.likes) || 0) + (Number(v.comments) || 0), 0) / arr.length;
+
+    const latest = groups[dates[0]];
+    const previous = groups[dates[1]];
+    const latestViews = avg(latest, 'views');
+    const previousViews = avg(previous, 'views');
+    const latestInteractions = avgInteraction(latest);
+    const previousInteractions = avgInteraction(previous);
+    const viewChange = previousViews === 0 ? 0 : (latestViews - previousViews) / previousViews;
+    const interactionChange = previousInteractions === 0 ? 0 : (latestInteractions - previousInteractions) / previousInteractions;
+    const viewChangePct = Math.round(viewChange * 100);
+    const interactionChangePct = Math.round(interactionChange * 100);
+
+    if (viewChange < -0.2 || Math.abs(interactionChange) > 0.2) {
+      let desc = '';
+      if (viewChange < -0.2) {
+        desc += `最新上传视频平均播放量下降 ${Math.abs(viewChangePct)}%；`;
+      }
+      if (Math.abs(interactionChange) > 0.2) {
+        const direction = interactionChange > 0 ? '上升' : '下降';
+        desc += `平均互动数（点赞+评论）${direction} ${Math.abs(interactionChangePct)}%；`;
+      }
+      return [{
+        type: 'alert',
+        category: 'dashboard',
+        title: '数据看板流量异常',
+        desc: desc.slice(0, -1) + '，建议检查内容方向或发布策略',
+        createdAt: new Date().toISOString()
+      }];
+    }
+
+    return [{
+      type: 'normal',
+      category: 'dashboard',
+      title: '当前数据正常',
+      desc: `播放量较上次变化 ${viewChangePct >= 0 ? '+' : ''}${viewChangePct}%，互动数变化 ${interactionChangePct >= 0 ? '+' : ''}${interactionChangePct}%`,
+      createdAt: new Date().toISOString()
+    }];
   },
 
   // ---------- Content items ----------

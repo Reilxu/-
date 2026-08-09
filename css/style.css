@@ -1969,23 +1969,50 @@ textarea,
 
 .alert-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 12px 14px;
   border-radius: var(--radius-sm);
   background: var(--bg-muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.alert-item .alert-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-top: 6px;
+.alert-item:hover {
+  background: var(--border);
+}
+
+.alert-item .alert-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--text-mute);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.alert-item.done .alert-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.alert-item .alert-check svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text);
+  opacity: 0;
+}
+
+.alert-item.done .alert-check svg {
+  opacity: 1;
 }
 
 .alert-item .alert-content {
   flex: 1;
+  min-width: 0;
 }
 
 .alert-item .alert-title {
@@ -1994,11 +2021,21 @@ textarea,
   color: var(--text);
 }
 
+.alert-item.done .alert-title {
+  text-decoration: line-through;
+  color: var(--text-mute);
+}
+
 .alert-item .alert-desc {
   font-size: var(--font-size-xs);
   color: var(--text-soft);
   margin-top: 3px;
   line-height: 1.4;
+}
+
+.alert-item.done .alert-desc {
+  text-decoration: line-through;
+  color: var(--text-mute);
 }
 
 /* Empty state */
