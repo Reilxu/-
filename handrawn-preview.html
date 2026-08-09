@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>小冷 · 手绘风格预览（v3.3.17-preview）</title>
+
+<!-- 字体：Kalam(Kalam 标题) + Patrick Hand(正文) + ZCOOL KuaiLe(中文手写体) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/handrawn-preview.css">
+</head>
+<body>
+
+<!-- 顶栏 -->
+<header class="preview-topbar">
+  <span class="preview-logo">冷</span>
+  <h1>手绘草稿便利贴 · 风格预览</h1>
+  <span class="preview-tag">预览版 · 未部署 · 可回退 v3.3.17</span>
+</header>
+
+<main class="preview-wrap">
+
+  <!-- 说明 -->
+  <section class="section" style="margin-top:8px;">
+    <p class="section-sub" style="margin-bottom:0;">
+      这是一套手绘草稿便利贴设计系统的<strong>静态预览</strong>，以「今日仪表盘」为样板。
+      采用纸张点阵纹理、铅笔黑 + 修正红 + 便签黄配色、wobbly 歪扭圆角、无模糊硬偏移阴影、Kalam/Patrick Hand/站酷快乐体手写字体。
+      仅做 UI 美术替换，业务逻辑与线上 v3.3.17 完全一致，确认风格后再决定是否并入工作台。
+    </p>
+  </section>
+
+  <!-- 设计 Token 速览 -->
+  <section class="section">
+    <h2 class="section-title">设计 Token</h2>
+    <p class="section-sub">集中管理的颜色 / 圆角 / 阴影常量，统一在 <code>:root</code> 中定义。</p>
+    <div class="token-grid">
+      <div class="token"><div class="swatch" style="background:#fdfbf7;"></div><div class="t-name">纸张纸</div><div class="t-val">#fdfbf7</div></div>
+      <div class="token"><div class="swatch" style="background:#2d2d2d;"></div><div class="t-name">铅笔黑</div><div class="t-val">#2d2d2d</div></div>
+      <div class="token"><div class="swatch" style="background:#ff4d4d;"></div><div class="t-name">修正红</div><div class="t-val">#ff4d4d</div></div>
+      <div class="token"><div class="swatch" style="background:#2d5da1;"></div><div class="t-name">圆珠笔蓝</div><div class="t-val">#2d5da1</div></div>
+      <div class="token"><div class="swatch" style="background:#fff9c4;"></div><div class="t-name">便签黄</div><div class="t-val">#fff9c4</div></div>
+      <div class="token"><div class="swatch" style="background:#e5e0d8;"></div><div class="t-name">旧纸张</div><div class="t-val">#e5e0d8</div></div>
+      <div class="token"><div class="swatch" style="background:#fff;box-shadow:4px 4px 0 0 #2d2d2d;"></div><div class="t-name">硬阴影1</div><div class="t-val">4px 4px 0</div></div>
+      <div class="token"><div class="swatch" style="background:#fff;box-shadow:8px 8px 0 0 #2d2d2d;"></div><div class="t-name">硬阴影2</div><div class="t-val">8px 8px 0</div></div>
+    </div>
+  </section>
+
+  <!-- 组件 Demo -->
+  <section class="section">
+    <h2 class="section-title">组件库</h2>
+    <p class="section-sub">Button / Card / Input 三个可复用组件，均带 hover 抬起、active 按扁、键盘聚焦可见。</p>
+    <div class="demo-grid">
+
+      <div class="demo-box">
+        <h3>Button 按钮</h3>
+        <div class="demo-row">
+          <button class="btn">主要按钮</button>
+          <button class="btn btn--secondary">次要按钮</button>
+          <button class="btn btn--danger">删除</button>
+          <button class="btn btn--sm">小号</button>
+        </div>
+        <p class="demo-note">默认白底黑框硬阴影；hover 变红白字并位移；active 阴影消失模拟按扁。</p>
+      </div>
+
+      <div class="demo-box card--tape" style="border:none;box-shadow:none;background:transparent;padding:0;">
+        <h3 style="font-family:var(--font-title);font-weight:700;font-size:18px;margin-bottom:14px;">Card 卡片</h3>
+        <div class="card card--note" style="transform:rotate(-1deg);">
+          <strong>便利贴模式</strong>
+          <p style="margin-top:6px;color:var(--ink-soft);">便签黄底，适合灵感、临时备忘。</p>
+        </div>
+        <div class="card" style="margin-top:16px;transform:rotate(0.6deg);">
+          <strong>标准卡片</strong>
+          <p style="margin-top:6px;color:var(--ink-soft);">白底铅笔黑框 + 硬阴影，hover 轻微扭动。</p>
+        </div>
+      </div>
+
+      <div class="demo-box" style="grid-column: 1 / -1;">
+        <h3>Input 输入框</h3>
+        <div style="max-width:420px;">
+          <label class="field">
+            <span class="field-label">选题标题</span>
+            <input class="input" type="text" placeholder="例如：用 Codex 一天产出 10 条脚本？">
+          </label>
+          <label class="field">
+            <span class="field-label">开始日期</span>
+            <input class="input" type="date" value="2026-08-09">
+          </label>
+          <label class="field" style="margin-bottom:0;">
+            <span class="field-label">备注</span>
+            <textarea class="textarea" placeholder="随手记点什么…"></textarea>
+          </label>
+        </div>
+        <p class="demo-note">focus 时边框变圆珠笔蓝并出现蓝色光环，移除原生 outline。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 今日仪表盘 mock -->
+  <section class="section">
+    <h2 class="section-title">今日仪表盘（手绘版）</h2>
+    <p class="section-sub">以现有「今日」模块为样板迁移视觉：问候 / 完成率 / 日历（待办红点 + 月份切换）/ 待办（新增·编辑·删除）。</p>
+
+    <!-- 问候 Hero -->
+    <div class="hero">
+      <div>
+        <div class="hero-greet">下午好，<span class="hero-name">小冷</span>！<br>今天想创作点什么？</div>
+        <div class="hero-sub">这是你每日的 AI 内容创作仪表盘。快速查看待办、热点和创作进度。</div>
+      </div>
+      <div class="hero-date" aria-label="今天日期">
+        <div class="d-num">8 月 9 日</div>
+        <div class="d-txt">星期日 · 杭州</div>
+        <div class="d-weather">⛅ 32°C</div>
+      </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stat-grid">
+      <div class="stat-card stat-card--white">
+        <svg class="stat-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="track" cx="18" cy="18" r="15.9"></circle>
+          <circle class="bar" cx="18" cy="18" r="15.9" stroke-dasharray="100" stroke-dashoffset="35"></circle>
+        </svg>
+        <div class="stat-info">
+          <div class="stat-label">今日完成率</div>
+          <div class="stat-value">3<span class="unit"> / 4</span></div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--paper">
+        <svg class="stat-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="track" cx="18" cy="18" r="15.9"></circle>
+          <circle class="bar" cx="18" cy="18" r="15.9" stroke-dasharray="100" stroke-dashoffset="20"></circle>
+        </svg>
+        <div class="stat-info">
+          <div class="stat-label">昨日播放量</div>
+          <div class="stat-value">12.4<span class="unit"> 万</span></div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--blue">
+        <svg class="stat-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="track" cx="18" cy="18" r="15.9"></circle>
+          <circle class="bar" cx="18" cy="18" r="15.9" stroke-dasharray="100" stroke-dashoffset="45"></circle>
+        </svg>
+        <div class="stat-info">
+          <div class="stat-label">昨日互动数</div>
+          <div class="stat-value">3,180</div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--red">
+        <svg class="stat-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="track" cx="18" cy="18" r="15.9"></circle>
+          <circle class="bar" cx="18" cy="18" r="15.9" stroke-dasharray="100" stroke-dashoffset="30"></circle>
+        </svg>
+        <div class="stat-info">
+          <div class="stat-label">已发布内容</div>
+          <div class="stat-value">28<span class="unit"> 篇</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 日历 + 待办 -->
+    <div class="dash-row">
+
+      <!-- 日历 -->
+      <div class="card cal-card card--pin">
+        <div class="cal-head">
+          <button class="cal-nav" aria-label="上一月">‹</button>
+          <span class="cal-title">2026 年 8 月</span>
+          <button class="cal-nav" aria-label="下一月">›</button>
+          <button class="cal-today-btn">回到今天</button>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dow">日</div><div class="cal-dow">一</div><div class="cal-dow">二</div><div class="cal-dow">三</div><div class="cal-dow">四</div><div class="cal-dow">五</div><div class="cal-dow">六</div>
+          <!-- 8/1 为周六，前置留空 -->
+          <div class="cal-cell other">26</div><div class="cal-cell other">27</div><div class="cal-cell other">28</div><div class="cal-cell other">29</div><div class="cal-cell other">30</div><div class="cal-cell other">31</div>
+          <div class="cal-cell">1</div><div class="cal-cell">2</div><div class="cal-cell">3</div><div class="cal-cell">4</div><div class="cal-cell">5</div><div class="cal-cell">6</div><div class="cal-cell">7</div><div class="cal-cell">8</div>
+          <div class="cal-cell today has-todo">9</div><div class="cal-cell">10</div><div class="cal-cell">11</div><div class="cal-cell has-todo">12</div><div class="cal-cell">13</div><div class="cal-cell">14</div><div class="cal-cell has-todo">15</div>
+          <div class="cal-cell">16</div><div class="cal-cell">17</div><div class="cal-cell">18</div><div class="cal-cell">19</div><div class="cal-cell has-todo">20</div><div class="cal-cell">21</div><div class="cal-cell">22</div>
+          <div class="cal-cell has-todo">23</div><div class="cal-cell">24</div><div class="cal-cell">25</div><div class="cal-cell">26</div><div class="cal-cell">27</div><div class="cal-cell">28</div><div class="cal-cell">29</div>
+          <div class="cal-cell">30</div><div class="cal-cell">31</div><div class="cal-cell other">1</div><div class="cal-cell other">2</div><div class="cal-cell other">3</div><div class="cal-cell other">4</div><div class="cal-cell other">5</div>
+        </div>
+        <p class="demo-note" style="margin-top:12px;">日期下方红点 = 当天有待办；今天（9 日）用修正红高亮。</p>
+      </div>
+
+      <!-- 待办 -->
+      <div class="card todo-card">
+        <div class="todo-head">
+          <span class="panel-title">待办事项</span>
+          <button class="todo-add" aria-label="新增待办">＋ 新增</button>
+        </div>
+        <div class="todo-list">
+          <div class="todo-item">
+            <button class="todo-check" aria-label="标记完成">✓</button>
+            <div class="todo-main">
+              <div class="todo-text">写一条关于 Codex 的口播脚本</div>
+              <div class="todo-meta"><span class="todo-pill high">高</span> 8/9 – 8/10</div>
+            </div>
+            <div class="todo-actions">
+              <button class="todo-act" aria-label="编辑" title="编辑">✎</button>
+              <button class="todo-act danger" aria-label="删除" title="删除">🗑</button>
+            </div>
+          </div>
+          <div class="todo-item">
+            <button class="todo-check" aria-label="标记完成">✓</button>
+            <div class="todo-main">
+              <div class="todo-text">剪映导出小红书封面图</div>
+              <div class="todo-meta"><span class="todo-pill mid">中</span> 8/12</div>
+            </div>
+            <div class="todo-actions">
+              <button class="todo-act" aria-label="编辑" title="编辑">✎</button>
+              <button class="todo-act danger" aria-label="删除" title="删除">🗑</button>
+            </div>
+          </div>
+          <div class="todo-item done">
+            <button class="todo-check" aria-label="已完成">✓</button>
+            <div class="todo-main">
+              <div class="todo-text">复盘昨日爆款数据</div>
+              <div class="todo-meta"><span class="todo-pill low">低</span> 8/9</div>
+            </div>
+            <div class="todo-actions">
+              <button class="todo-act" aria-label="编辑" title="编辑">✎</button>
+              <button class="todo-act danger" aria-label="删除" title="删除">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 响应式说明 -->
+  <section class="section">
+    <h2 class="section-title">响应式 &amp; 可访问性</h2>
+    <p class="section-sub">
+      移动端单列、桌面双栏；花哨装饰（强旋转）在手机端收敛，但保留歪扭边框、手写字体、硬阴影。
+      所有交互元素最小点击区 48px；键盘聚焦有蓝色可见描边；尊重 <code>prefers-reduced-motion</code> 关闭动效。
+    </p>
+  </section>
+
+</main>
+
+</body>
+</html>

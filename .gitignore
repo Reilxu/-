@@ -1,0 +1,11 @@
+# 部署/打包产物（不进仓库）
+deploy-package*.tar.gz
+*.exp
+
+# 本地开发用的微型静态服务器（Vercel 用自带静态托管，不需要它）
+server.js
+
+# 系统/编辑器文件
+.DS_Store
+Thumbs.db
+*.log
