@@ -27,18 +27,31 @@
       await window.SB.auth.signOut();
     },
 
-    // 订阅登录态变化，回调收到 user 或 null
+    // 订阅登录态变化，回调收到 (user|null, event)
+    // event 取值：INITIAL_SESSION / SIGNED_IN / SIGNED_OUT / TOKEN_REFRESHED ...
     onAuthChange(cb) {
-      if (!window.SB) { cb(null); return; }
+      if (!window.SB) { cb(null, 'NO_CLIENT'); return; }
       window.SB.auth.onAuthStateChange(function (event, session) {
-        cb(session && session.user ? session.user : null);
+        cb(session && session.user ? session.user : null, event);
       });
     },
 
+    // 恢复登录态：优先读本地已持久化的 session（不发网络请求，刷新页面时最快且不受
+    // 网络抖动影响）；本地没有再回退到 getUser() 走一次服务端校验。
     async getCurrentUser() {
       if (!window.SB) return null;
-      var { data } = await window.SB.auth.getUser();
-      return data && data.user ? data.user : null;
+      try {
+        var s = await window.SB.auth.getSession();
+        if (s && s.data && s.data.session && s.data.session.user) {
+          return s.data.session.user;
+        }
+      } catch (e) { /* 继续尝试 getUser */ }
+      try {
+        var r = await window.SB.auth.getUser();
+        return r && r.data && r.data.user ? r.data.user : null;
+      } catch (e) {
+        return null;
+      }
     }
   };
 

@@ -28,6 +28,40 @@
   window.SB = client;
   window.SupabaseReady = true;
 
+  // --------------------------------------------------------------------------
+  // OAuth 回调参数清理（修复"刷新页面就掉登录"）
+  // 原因：登录成功后地址栏残留 ?code=xxx，用户刷新时 SDK 会拿这个**已被消费**的
+  //       一次性 code 再次去换 session，交换失败后 SDK 会清掉本地既有登录态，
+  //       表现就是每刷新一次都要重新登录。这里在 session 恢复后立即抹掉这些参数。
+  // --------------------------------------------------------------------------
+  (function stripOAuthParams() {
+    var search = window.location.search || '';
+    var hash = window.location.hash || '';
+    var dirty = /[?&](code|state|error|error_code|error_description)=/.test(search) ||
+                /[#&](access_token|refresh_token|error)=/.test(hash);
+    if (!dirty) return;
+
+    var strip = function () {
+      try {
+        var url = new URL(window.location.href);
+        ['code', 'state', 'error', 'error_code', 'error_description'].forEach(function (k) {
+          url.searchParams.delete(k);
+        });
+        var qs = url.searchParams.toString();
+        var clean = url.origin + url.pathname + (qs ? '?' + qs : '');
+        window.history.replaceState({}, document.title, clean);
+      } catch (e) { /* 清理失败不影响主流程 */ }
+    };
+
+    client.auth.onAuthStateChange(function (event) {
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+        strip();
+      }
+    });
+    // 兜底：即便交换失败也要把 code 清掉，否则每次刷新都会重复失败
+    setTimeout(strip, 2500);
+  })();
+
   // ---- 通用 CRUD 封装（全部受 RLS 约束）----
   window.SBData = {
     // 取某 bucket 的全部条目

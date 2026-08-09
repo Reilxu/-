@@ -132,35 +132,72 @@ const App = {
     this.renderAuthArea();
     if (!window.SupabaseReady || !window.Auth) return; // 未配置则回退本地，不影响使用
     const self = this;
+    this._authSignedIn = false;   // 本次会话是否已确认登录
+    this._authSyncing = false;    // 防止 getCurrentUser 与 INITIAL_SESSION 重复同步
+
+    // ① 立刻读本地 session 恢复登录态（刷新页面主路径）
     window.Auth.getCurrentUser().then(function (user) {
-      if (user) self._onSignedIn(user, false);
+      if (user && !self._authSignedIn) {
+        self._authSignedIn = true;
+        self._onSignedIn(user, false);
+      }
     });
-    window.Auth.onAuthChange(function (user) {
-      if (user) self._onSignedIn(user, true);
-      else self._onSignedOut();
+
+    // ② 订阅后续变化
+    window.Auth.onAuthChange(function (user, event) {
+      if (user) {
+        const isNewLogin = (event === 'SIGNED_IN') && !self._authSignedIn;
+        // 已确认登录且只是 token 续期，仅刷新界面，不重复全量同步
+        if (self._authSignedIn && event === 'TOKEN_REFRESHED') {
+          Store.setCloudUser(user);
+          self.renderAuthArea();
+          self.renderBottomNav();
+          return;
+        }
+        self._authSignedIn = true;
+        self._onSignedIn(user, isNewLogin);
+        return;
+      }
+      // 只有真正登出才清状态并提示；
+      // INITIAL_SESSION 拿不到 session 说明"本来就没登录"，不能弹"已退出登录"
+      if (event === 'SIGNED_OUT') {
+        self._authSignedIn = false;
+        self._onSignedOut(true);
+      } else if (!self._authSignedIn) {
+        self._onSignedOut(false);
+      }
     });
   },
 
-  _onSignedIn(user, fromChange) {
+  _onSignedIn(user, isNewLogin) {
     const self = this;
     Store.setCloudUser(user);
+    // 界面先立刻切到已登录，避免同步耗时期间显示成未登录
+    this.renderAuthArea();
+    this.renderBottomNav();
+
+    if (this._authSyncing) return; // 同步进行中，不重复触发
+    this._authSyncing = true;
+
     Store.syncAfterLogin().then(function () {
+      self._authSyncing = false;
       self.renderAuthArea();
       self.renderBottomNav();
-      if (fromChange) self.showToast('已登录，数据已同步到云端');
+      if (isNewLogin) self.showToast('已登录，数据已同步到云端');
       self.navigate(self.currentModule);
     }).catch(function () {
+      self._authSyncing = false;
       self.renderAuthArea();
       self.renderBottomNav();
-      if (fromChange) self.showToast('已登录（云端同步稍后重试）');
+      if (isNewLogin) self.showToast('已登录（云端同步稍后重试）');
     });
   },
 
-  _onSignedOut() {
+  _onSignedOut(showToast) {
     Store.setCloudUser(null);
     this.renderAuthArea();
     this.renderBottomNav();
-    this.showToast('已退出登录');
+    if (showToast !== false) this.showToast('已退出登录');
   },
 
   renderAuthArea() {
