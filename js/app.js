@@ -146,10 +146,12 @@ const App = {
     Store.setCloudUser(user);
     Store.syncAfterLogin().then(function () {
       self.renderAuthArea();
+      self.renderBottomNav();
       if (fromChange) self.showToast('已登录，数据已同步到云端');
       self.navigate(self.currentModule);
     }).catch(function () {
       self.renderAuthArea();
+      self.renderBottomNav();
       if (fromChange) self.showToast('已登录（云端同步稍后重试）');
     });
   },
@@ -157,6 +159,7 @@ const App = {
   _onSignedOut() {
     Store.setCloudUser(null);
     this.renderAuthArea();
+    this.renderBottomNav();
     this.showToast('已退出登录');
   },
 
@@ -234,10 +237,79 @@ const App = {
         </div>
       `;
     });
+
+    // 移动端专属：我的 / 登录入口
+    const isCloud = Store.isCloud && Store.isCloud();
+    const user = Store.cloudUser || {};
+    const meta = user.user_metadata || {};
+    const userName = meta.user_name || meta.name || (user.email ? user.email.split('@')[0] : '我');
+    const userAvatar = meta.avatar_url
+      ? `<img class="bn-auth-avatar" src="${this._esc(meta.avatar_url)}" alt="">`
+      : `<span class="bn-auth-avatar bn-auth-avatar--text">${this._esc(userName.charAt(0).toUpperCase())}</span>`;
+    if (isCloud) {
+      html += `
+        <div class="bottom-nav-item bottom-nav-item--auth" data-action="auth-menu">
+          <span class="bn-icon bn-auth-icon-wrap">${userAvatar}</span>
+          <span class="bn-label">${this._esc(userName)}</span>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="bottom-nav-item bottom-nav-item--auth" data-action="auth-signin">
+          <span class="bn-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+          </span>
+          <span class="bn-label">登录同步</span>
+        </div>
+      `;
+    }
     html += '</div>';
     nav.innerHTML = html;
+
     nav.querySelectorAll('.bottom-nav-item[data-module]').forEach(el => {
       el.addEventListener('click', () => this.navigate(el.dataset.module));
+    });
+    const authEl = nav.querySelector('.bottom-nav-item[data-action]');
+    if (authEl) {
+      authEl.addEventListener('click', () => {
+        if (authEl.dataset.action === 'auth-signin') {
+          if (window.Auth) window.Auth.signInWithGitHub();
+        } else {
+          this.showMobileAuthMenu();
+        }
+      });
+    }
+  },
+
+  // 移动端已登录用户的操作菜单
+  showMobileAuthMenu() {
+    const user = Store.cloudUser || {};
+    const meta = user.user_metadata || {};
+    const name = meta.user_name || meta.name || (user.email ? user.email.split('@')[0] : '已登录');
+    const avatar = meta.avatar_url
+      ? `<img class="mobile-auth-avatar" src="${this._esc(meta.avatar_url)}" alt="">`
+      : `<span class="mobile-auth-avatar mobile-auth-avatar--text">${this._esc(name.charAt(0).toUpperCase())}</span>`;
+    this.openModal(`
+      <div class="mobile-auth-sheet">
+        <div class="mobile-auth-header">
+          ${avatar}
+          <div class="mobile-auth-info">
+            <div class="mobile-auth-name">${this._esc(name)}</div>
+            <div class="mobile-auth-hint">GitHub 账号已登录，数据自动同步</div>
+          </div>
+        </div>
+        <button class="mobile-auth-btn mobile-auth-btn--danger" id="mobileAuthSignOut">退出登录</button>
+      </div>
+    `, { title: '账号' });
+    document.getElementById('mobileAuthSignOut')?.addEventListener('click', () => {
+      if (window.Auth) window.Auth.signOut();
+      this.closeModal();
+    });
+  },
+
+  _esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
   },
 

@@ -6673,3 +6673,98 @@ textarea,
   color: #ff4d4d;
   background: #FCEBEB;
 }
+
+/* 移动端底部导航：我的 / 登录入口 */
+.bottom-nav-item--auth {
+  min-width: 72px;
+  background: var(--bg-card);
+}
+.bottom-nav-item--auth:active {
+  background: var(--bg-muted);
+}
+.bottom-nav-item--auth .bn-auth-icon-wrap {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bn-auth-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #EAF2FF;
+}
+.bn-auth-avatar--text {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1A1A1A;
+  background: var(--accent);
+}
+
+/* 移动端账号操作浮层 */
+.mobile-auth-sheet {
+  padding: 8px 0 4px;
+}
+.mobile-auth-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 4px 18px;
+}
+.mobile-auth-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #EAF2FF;
+  flex-shrink: 0;
+}
+.mobile-auth-avatar--text {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1A1A1A;
+  background: var(--accent);
+}
+.mobile-auth-info {
+  flex: 1;
+  min-width: 0;
+}
+.mobile-auth-name {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.mobile-auth-hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-soft);
+}
+.mobile-auth-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--text);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+.mobile-auth-btn--danger {
+  color: #ff4d4d;
+  border-color: #ff4d4d;
+  background: #FCEBEB;
+}

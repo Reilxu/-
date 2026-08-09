@@ -231,6 +231,15 @@ const ModuleConfig = {
   // 更新日志
   updateLogs: [
     {
+      date: '2026-08-10',
+      version: 'v3.3.19',
+      content: `v3.3.19更新。
+- 移动端登录入口：底部导航最右侧新增「登录同步」入口，未登录时点击跳转 GitHub OAuth；已登录时显示 GitHub 用户名/头像，点击弹出账号菜单可退出登录
+- 修复手机端看不到登录功能的问题：原登录区仅在桌面侧边栏，手机端 sidebar 隐藏后无法登录；现在 bottom-nav 常驻登录入口
+- GitHub OAuth 回调地址优化：由 window.location.href 改为固定站点根地址，避免带 hash/query 导致回调异常`,
+      impact: '手机、电脑都能登录同一 GitHub 账号并自动同步数据',
+    },
+    {
       date: '2026-08-09',
       version: 'v3.3.17',
       content: `v3.3.17更新。

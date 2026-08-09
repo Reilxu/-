@@ -12,9 +12,12 @@
         alert('Supabase 未配置，无法登录');
         return;
       }
-      var { error } = await window.SB.auth.signInWithOAuth({
+      var redirectTo = (typeof window !== 'undefined' && window.location)
+      ? (window.location.origin + '/')
+      : 'https://pied-theta.vercel.app/';
+    var { error } = await window.SB.auth.signInWithOAuth({
         provider: 'github',
-        options: { redirectTo: window.location.href }
+        options: { redirectTo: redirectTo }
       });
       if (error) alert('登录失败：' + error.message);
     },
