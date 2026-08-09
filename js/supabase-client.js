@@ -16,7 +16,13 @@
   }
 
   var client = window.supabase.createClient(cfg.url, cfg.anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true }
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      // OAuth 回调后地址栏会带 ?code=xxx，必须让 SDK 自动交换为 session 并清理 URL
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    }
   });
 
   window.SB = client;

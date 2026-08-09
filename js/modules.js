@@ -232,6 +232,15 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-10',
+      version: 'v3.3.20',
+      content: `v3.3.20更新。
+- 修复 GitHub 登录后跳 404 的问题：显式开启 detectSessionInUrl 与 PKCE 流程，OAuth 回调带回的 code 参数会被自动交换为登录态并清理地址栏
+- 新增 supabase/fix-profiles-backfill.sql：用于修复「Authentication → Users 已有账号但 profiles 表为空」的历史数据回填与触发器重建
+- 部署指引补充 Step 8「回填网址到 Supabase」：Site URL 与 Redirect URLs 未配置是登录 404 的根本原因`,
+      impact: '登录授权后可正常跳回工作台并完成云端同步',
+    },
+    {
+      date: '2026-08-10',
       version: 'v3.3.19',
       content: `v3.3.19更新。
 - 移动端登录入口：底部导航最右侧新增「登录同步」入口，未登录时点击跳转 GitHub OAuth；已登录时显示 GitHub 用户名/头像，点击弹出账号菜单可退出登录
