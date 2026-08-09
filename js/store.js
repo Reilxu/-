@@ -943,7 +943,7 @@ const Store = {
     this.setObject('xl_competitor_real_titles', map || {});
   },
 
-  // 今日 AI 热点概要（Deepseek 汇总，30min TTL）
+  // 本周 AI 热点概要（Deepseek 以周为维度汇总，30min TTL；点右上角刷新会 force 重新抓取+重新生成）
   getAIHotSummary() {
     const c = this.getObject('xl_ai_hot_summary_cache');
     if (c && c.data && Date.now() - (c._ts || 0) < 30 * 60 * 1000) return c.data;

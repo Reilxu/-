@@ -45,12 +45,14 @@ const API = (() => {
       cacheTTL: 30 * 60 * 1000, // 30 分钟
     },
 
-    // 真实 AI 每日热点（聚合抓取，非 AI 生成趋势）
+    // 真实 AI 每周热点（聚合抓取，非 AI 生成趋势）
     realAIHot: {
       cacheKey: "xl_ai_real_hot_cache",
-      cacheTTL: 30 * 60 * 1000, // 30 分钟
+      cacheTTL: 30 * 60 * 1000, // 30 分钟（点右上角刷新时 force=true 会绕过缓存做真实抓取）
+      windowDays: 7,            // 以「周」为维度收集汇总：只保留最近 7 天的资讯
       githubUrl: "https://api.github.com/search/repositories",
       hnUrl: "https://hn.algolia.com/api/v1/search",
+      hnDateUrl: "https://hn.algolia.com/api/v1/search_by_date",
     },
 
     // Deepseek API
@@ -642,30 +644,50 @@ heat 为 50万-500万之间的整数。输出纯 JSON 数组，不要 markdown �
   }
 
   // =============================================================================
-  // 2b. 真实 AI 每日热点 — 聚合抓取（GitHub / AI门户 / 社媒），非 AI 生成趋势
+  // 2b. 真实 AI 每周热点 — 聚合抓取（GitHub / AI门户 / 社媒），非 AI 生成趋势
   // =============================================================================
 
+  /** 本周（最近 N 天）时间窗口起点，毫秒时间戳 */
+  function weekWindowStart() {
+    const days = CONFIG.realAIHot.windowDays || 7;
+    return Date.now() - days * 24 * 60 * 60 * 1000;
+  }
+
+  /** 本周区间标签，如 "08-04 ~ 08-10" */
+  function weekRangeLabel() {
+    const fmt = (d) => `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return `${fmt(new Date(weekWindowStart()))} ~ ${fmt(new Date())}`;
+  }
+
   /**
-   * 抓取真实 AI 每日热点：并行聚合 Aihot(AI门户) + GitHub Trending + Hacker News(社媒)
-   * 去重、按时间倒序，截取 6-10 条
+   * 抓取真实 AI 每周热点：并行聚合 Aihot(AI门户) + GitHub Trending + Hacker News(社媒)
+   * 以「周」为维度：只保留最近 7 天的真实资讯，去重、按时间倒序
+   * force=true（点击右上角刷新）时绕过所有缓存，向门户站点做真实实时抓取
    *
-   * @param {boolean} [force=false] - 强制刷新（忽略缓存）
-   * @returns {Promise<{items:Array, source:string}|{error:string}>}
+   * @param {boolean} [force=false] - 强制刷新（忽略缓存，真实抓取最新消息）
+   * @returns {Promise<{items:Array, source:string, fetchedAt:number, rangeLabel:string}|{error:string}>}
    *   items: [{ title, url, summary, source, category, publishedAt, metric }]
    */
   async function fetchRealAIHotNews(force = false) {
     const cacheKey = CONFIG.realAIHot.cacheKey;
+    const rangeLabel = weekRangeLabel();
     if (!force) {
       const cached = getCache(cacheKey, CONFIG.realAIHot.cacheTTL);
       if (cached && Array.isArray(cached.items) && cached.items.length) {
-        return { items: cached.items, source: "cache" };
+        return {
+          items: cached.items,
+          source: "cache",
+          fetchedAt: cached._ts || 0,
+          rangeLabel: cached.rangeLabel || rangeLabel,
+        };
       }
     }
 
     // 真实行业源（GitHub / AI门户 / 社媒）与平台 AI 热点（抖音 / B站 / 小红书）并行抓取
+    // force 透传给 Aihot 门户，确保刷新时拿到的是当前时间点的最新资讯而非本地缓存
     const [realSettled, platformItems] = await Promise.all([
       Promise.allSettled([
-        fetchAihotRealItems(),
+        fetchAihotRealItems(force),
         fetchGitHubTrending(),
         fetchHackerNewsAI(),
       ]),
@@ -677,6 +699,14 @@ heat 为 50万-500万之间的整数。输出纯 JSON 数组，不要 markdown �
       if (r.status === "fulfilled" && Array.isArray(r.value)) {
         realItems = realItems.concat(r.value);
       }
+    });
+
+    // 周维度过滤：带时间戳的真实资讯只保留最近 7 天（无时间戳的平台热搜本身即为实时榜单）
+    const since = weekWindowStart();
+    realItems = realItems.filter((it) => {
+      if (!it.publishedAt) return true;
+      const t = new Date(it.publishedAt).getTime();
+      return !t || t >= since;
     });
 
     const platItems = Array.isArray(platformItems) ? platformItems : [];
@@ -702,14 +732,15 @@ heat 为 50万-500万之间的整数。输出纯 JSON 数组，不要 markdown �
     const items = all.slice(0, cap);
 
     if (items.length === 0) {
-      return { items: [], source: "empty", error: "NO_DATA", message: "暂时未能抓取到真实热点，请稍后刷新重试" };
+      return { items: [], source: "empty", error: "NO_DATA", message: "暂时未能抓取到本周真实热点，请稍后刷新重试" };
     }
 
-    setCache(cacheKey, { items, _ts: Date.now() });
-    return { items, source: "live" };
+    const fetchedAt = Date.now();
+    setCache(cacheKey, { items, rangeLabel, _ts: fetchedAt });
+    return { items, source: "live", fetchedAt, rangeLabel };
   }
 
-  // 今日 AI 热点概要——由 Deepseek 汇总真实 AI 资讯（含 Agent/Skill/实用工具），输出概要报告
+  // 本周 AI 热点概要——由 Deepseek 汇总本周真实 AI 资讯（含 Agent/Skill/实用工具），输出概要报告
   async function generateAIHotSummary(items, force = false) {
     if (!force) {
       const cached = Store.getAIHotSummary();
@@ -718,26 +749,43 @@ heat 为 50万-500万之间的整数。输出纯 JSON 数组，不要 markdown �
 
     const settings = Store.getSettings();
     if (!settings.deepseekApiKey) {
-      return { error: "NO_KEY", message: "请先在设置中配置 Deepseek API Key 以生成今日 AI 热点概要" };
+      return { error: "NO_KEY", message: "请先在设置中配置 Deepseek API Key 以生成本周 AI 热点概要" };
     }
 
-    const newsText = (items || []).slice(0, 12).map((n, i) =>
-      `${i + 1}. [${n.source || "资讯"}] ${n.title}${n.summary ? "：" + n.summary.slice(0, 100) : ""}`,
-    ).join("\n");
+    const rangeLabel = weekRangeLabel();
+    const now = new Date();
+    const nowText = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-    const systemPrompt = `你是一位 AI 行业资讯分析师，擅长把零散的 AI 热点资讯汇总成一份清晰的"今日 AI 热点概要"报告，重点覆盖：AI 整体动态、AI Agent / Skill（智能体 / 技能）相关进展、以及实用的 AI 工具 / 效率工具。
+    const newsText = (items || []).slice(0, 16).map((n, i) => {
+      const t = n.publishedAt ? new Date(n.publishedAt) : null;
+      const dateStr = t && !isNaN(t.getTime())
+        ? `（${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}）`
+        : "（实时榜单）";
+      return `${i + 1}. [${n.source || "资讯"}]${dateStr} ${n.title}${n.summary ? "：" + n.summary.slice(0, 100) : ""}`;
+    }).join("\n");
+
+    const systemPrompt = `你是一位 AI 行业资讯分析师，擅长把一周内零散的 AI 热点资讯汇总成一份清晰的"本周 AI 热点概要"周报，重点覆盖：AI 整体动态、AI Agent / Skill（智能体 / 技能）相关进展、以及实用的 AI 工具 / 效率工具。
 
 要求：
+- 以「周」为维度做归纳：把同一主题的多条资讯合并成一个趋势，讲清楚这一周整体在发生什么，而不是逐条复述。
+- 严格基于用户提供的真实资讯，禁止编造任何未出现在素材里的产品名、公司名、版本号或数据；素材没提到的就不要写。
+- 越靠近当前时间的消息权重越高，优先突出最新进展。
 - 输出纯 JSON，不要包含 markdown 代码块标记。
 - 语言口语化、面向短视频创作者（普通人视角），信息密度高、不啰嗦。
 - 字段（均为字符串或字符串数组）：
-  "summary"（string）：今日 AI 热点总体概述，2-3 句
-  "highlights"（array of string）：今日最值得关注的 AI 热点要点，3-5 条，每条一句话
-  "agents"（array of string）：与 AI Agent / Skill / 智能体相关的动态，或值得做的选题角度，2-4 条
-  "tools"（array of string）：实用的 AI 工具 / 效率工具推荐或动向，2-4 条
-  "insight"（string）：给普通创作者（抖音 / 小红书）的选题启发，1-2 句`;
+  "summary"（string）：本周 AI 热点总体概述，2-3 句，点明这一周的主线趋势
+  "highlights"（array of string）：本周最值得关注的 AI 热点要点，3-5 条，每条一句话
+  "agents"（array of string）：与 AI Agent / Skill / 智能体相关的本周动态，或值得做的选题角度，2-4 条
+  "tools"（array of string）：本周值得关注的实用 AI 工具 / 效率工具推荐或动向，2-4 条
+  "insight"（string）：给普通创作者（抖音 / 小红书）的下周选题启发，1-2 句`;
 
-    const userMsg = `以下是从 GitHub、AI 门户、Hacker News、抖音、B站、小红书抓取的今日真实 AI 热点资讯：\n\n${newsText}\n\n请基于以上真实资讯，输出今日 AI 热点概要报告（重点覆盖 AI 动态、Agent/Skill、实用工具）。`;
+    const userMsg = `当前时间：${nowText}，统计周期：${rangeLabel}（最近 7 天）。
+
+以下是刚刚从 GitHub、AI 门户、Hacker News、抖音、B站、小红书实时抓取的本周真实 AI 热点资讯（括号内为发布日期）：
+
+${newsText}
+
+请严格基于以上真实资讯，输出本周 AI 热点概要周报（重点覆盖 AI 动态、Agent/Skill、实用工具），不要引入素材之外的信息。`;
 
     const result = await aiChat(
       [
@@ -755,7 +803,9 @@ heat 为 50万-500万之间的整数。输出纯 JSON 数组，不要 markdown �
       if (md) text = md[1].trim();
       const objMatch = text.match(/\{[\s\S]*\}/);
       if (objMatch) text = objMatch[0];
-      const data = JSON.parse(text);
+      const parsed = JSON.parse(text);
+      // 附带周期与生成时间，供前端展示"统计周期 / 更新于"
+      const data = Object.assign({}, parsed, { rangeLabel, generatedAt: Date.now() });
       Store.saveAIHotSummary(data);
       return { data, source: "live" };
     } catch {
@@ -905,10 +955,10 @@ ${listText}
     }
   }
 
-  // 子源 1：Aihot 真实 AI 资讯（AI 门户）
-  async function fetchAihotRealItems() {
+  // 子源 1：Aihot 真实 AI 资讯（AI 门户）— force=true 时穿透缓存做真实抓取
+  async function fetchAihotRealItems(force = false) {
     try {
-      const r = await fetchAINews(false);
+      const r = await fetchAINews(force);
       if (r.error || !Array.isArray(r.items)) return [];
       return r.items.map((it) => ({
         title: it.title || "",
@@ -923,11 +973,11 @@ ${listText}
     }
   }
 
-  // 子源 2：GitHub 每日热门仓库（真实代码热榜）
+  // 子源 2：GitHub 本周热门仓库（真实代码热榜，最近 7 天新建按 star 排序）
   async function fetchGitHubTrending() {
     try {
-      const sinceDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const url = `${CONFIG.realAIHot.githubUrl}?q=created:>${sinceDate}&sort=stars&order=desc&per_page=8`;
+      const sinceDate = new Date(weekWindowStart()).toISOString().slice(0, 10);
+      const url = `${CONFIG.realAIHot.githubUrl}?q=created:>${sinceDate}&sort=stars&order=desc&per_page=10`;
       const resp = await fetchWithFallback(url);
       if (!resp || !resp.ok) return [];
       const json = await resp.json();
@@ -946,11 +996,16 @@ ${listText}
     }
   }
 
-  // 子源 3：Hacker News AI 相关（社媒/科技真实讨论）
+  // 子源 3：Hacker News AI 相关（社媒/科技真实讨论）— 限定本周内、按时间倒序保证时效性
   async function fetchHackerNewsAI() {
     try {
-      const url = `${CONFIG.realAIHot.hnUrl}?query=AI&tags=story&hitsPerPage=10`;
-      const resp = await fetchWithFallback(url);
+      const sinceTs = Math.floor(weekWindowStart() / 1000);
+      const url = `${CONFIG.realAIHot.hnDateUrl}?query=AI&tags=story&hitsPerPage=12&numericFilters=created_at_i>${sinceTs}`;
+      let resp = await fetchWithFallback(url);
+      // 回退：按时间检索失败时退回相关度检索（仍会在上层做 7 天过滤）
+      if (!resp || !resp.ok) {
+        resp = await fetchWithFallback(`${CONFIG.realAIHot.hnUrl}?query=AI&tags=story&hitsPerPage=12`);
+      }
       if (!resp || !resp.ok) return [];
       const json = await resp.json();
       const hits = Array.isArray(json.hits) ? json.hits : [];

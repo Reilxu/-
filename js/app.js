@@ -1275,36 +1275,36 @@ const App = {
 
     const label = category === 'life' ? '生活热点' : 'AI热点';
 
-    // AI热点：真实每日资讯（聚合抓取 GitHub / AI门户 / 社媒），非 AI 生成趋势
+    // AI热点：真实每周资讯（以周为维度聚合抓取 GitHub / AI门户 / 社媒），非 AI 生成趋势
     if (category === 'ai') {
-      container.innerHTML = `<div class="ai-loading"><div class="spinner"></div><p>正在抓取真实${label}...</p></div>`;
+      container.innerHTML = `<div class="ai-loading"><div class="spinner"></div><p>正在${force ? '实时抓取' : '加载'}本周真实${label}...</p></div>`;
       const result = await API.fetchRealAIHotNews(force);
 
       if (result.error || !result.items || result.items.length === 0) {
         container.innerHTML = `<div class="empty-state">
           <div class="empty-state-title">${label}获取失败</div>
-          <div class="empty-state-desc">${result.message || '暂时无法抓取真实热点，请检查网络后刷新重试'}</div>
+          <div class="empty-state-desc">${result.message || '暂时无法抓取本周真实热点，请检查网络后刷新重试'}</div>
         </div>`;
         return;
       }
 
-      // 生成「今日 AI 热点概要」（Deepseek 汇总，置于真实资讯列表上方）
+      // 生成「本周 AI 热点概要」（Deepseek 汇总，置于真实资讯列表上方）
       let summaryHtml = '';
       try {
         const sum = await API.generateAIHotSummary(result.items, force);
         if (sum.error) {
           summaryHtml = `<div class="ai-summary-card ai-summary-card--notice"><div class="ai-summary-notice">${this.esc(sum.message || '概要生成失败')}</div></div>`;
         } else if (sum.data) {
-          summaryHtml = this.renderAIHotSummary(sum.data);
+          summaryHtml = this.renderAIHotSummary(sum.data, result.rangeLabel);
           if (sum.source === 'cache') {
-            summaryHtml += `<div class="ai-summary-cache-tip">概要来自缓存（点击右上角刷新可重新生成）</div>`;
+            summaryHtml += `<div class="ai-summary-cache-tip">概要来自缓存（点击右上角刷新可重新抓取门户最新消息并重新生成）</div>`;
           }
         }
       } catch {
         summaryHtml = '';
       }
 
-      container.innerHTML = summaryHtml + this.renderRealAIHot(result.items, result.source);
+      container.innerHTML = summaryHtml + this.renderRealAIHot(result.items, result.source, result.fetchedAt, result.rangeLabel);
       return;
     }
 
@@ -1375,7 +1375,7 @@ const App = {
     return html;
   },
 
-  renderRealAIHot(items, source) {
+  renderRealAIHot(items, source, fetchedAt, rangeLabel) {
     if (!items || items.length === 0) {
       return `<div class="empty-state">
         <div class="empty-state-title">暂无数据</div>
@@ -1391,7 +1391,10 @@ const App = {
       '小红书': { bg: '#FFEDE8', color: '#E0396B' },
     };
 
-    let html = `<div class="api-status">数据来源：${source === 'cache' ? '缓存数据' : '实时抓取（GitHub / AI门户 / 社媒 / 抖音 / B站 / 小红书）'}</div>`;
+    const fetchedText = fetchedAt
+      ? `${new Date(fetchedAt).getMonth() + 1}月${new Date(fetchedAt).getDate()}日 ${String(new Date(fetchedAt).getHours()).padStart(2, '0')}:${String(new Date(fetchedAt).getMinutes()).padStart(2, '0')}`
+      : '';
+    let html = `<div class="api-status">统计周期：本周${rangeLabel ? `（${this.esc(rangeLabel)}）` : ''} · 数据来源：${source === 'cache' ? '缓存数据' : '实时抓取（GitHub / AI门户 / 社媒 / 抖音 / B站 / 小红书）'}${fetchedText ? ` · 抓取于 ${fetchedText}` : ''}</div>`;
     html += '<div class="real-hot-list">';
 
     items.forEach((it) => {
@@ -1416,7 +1419,7 @@ const App = {
     return html;
   },
 
-  renderAIHotSummary(data) {
+  renderAIHotSummary(data, rangeLabel) {
     if (!data) return '';
 
     const summary = data.summary || '';
@@ -1424,12 +1427,16 @@ const App = {
     const agents = Array.isArray(data.agents) ? data.agents : [];
     const tools = Array.isArray(data.tools) ? data.tools : [];
     const insight = data.insight || '';
+    const range = rangeLabel || data.rangeLabel || '';
+    const genText = data.generatedAt
+      ? `${new Date(data.generatedAt).getMonth() + 1}月${new Date(data.generatedAt).getDate()}日 ${String(new Date(data.generatedAt).getHours()).padStart(2, '0')}:${String(new Date(data.generatedAt).getMinutes()).padStart(2, '0')}`
+      : '';
 
     const li = (arr) => arr.map((t) => `<li>${this.esc(t)}</li>`).join('');
 
     let cols = '';
     if (highlights.length) {
-      cols += `<div class="ai-summary-col"><div class="ai-summary-col-title">今日要点</div><ul class="ai-summary-list">${li(highlights)}</ul></div>`;
+      cols += `<div class="ai-summary-col"><div class="ai-summary-col-title">本周要点</div><ul class="ai-summary-list">${li(highlights)}</ul></div>`;
     }
     if (agents.length) {
       cols += `<div class="ai-summary-col"><div class="ai-summary-col-title">Agent / Skill 动态</div><ul class="ai-summary-list">${li(agents)}</ul></div>`;
@@ -1443,8 +1450,8 @@ const App = {
         <div class="ai-summary-head">
           <span class="ai-summary-icon">${Icons.sparkles}</span>
           <div class="ai-summary-titles">
-            <div class="ai-summary-title">今日 AI 热点概要</div>
-            <div class="ai-summary-sub">由 Deepseek 汇总 AI / Agent / Skill / 实用工具热点</div>
+            <div class="ai-summary-title">本周 AI 热点概要</div>
+            <div class="ai-summary-sub">${range ? `统计周期 ${this.esc(range)} · ` : ''}由 Deepseek 汇总本周 AI / Agent / Skill / 实用工具热点${genText ? ` · 更新于 ${genText}` : ''}</div>
           </div>
         </div>
         ${summary ? `<div class="ai-summary-overview">${this.esc(summary)}</div>` : ''}
@@ -1497,7 +1504,7 @@ const App = {
 
   async refreshHotTopics() {
     const activeTab = this.currentHotTab || 'platform';
-    this.showToast('正在刷新热点数据...');
+    this.showToast(activeTab === 'ai' ? '正在实时抓取门户最新消息...' : '正在刷新热点数据...');
     if (activeTab === 'platform') {
       await this.loadHotTopics(this.currentPlatform, true);
     } else if (activeTab === 'competitor') {
@@ -1505,7 +1512,7 @@ const App = {
     } else {
       await this.loadAIHotTopics(activeTab, true);
     }
-    this.showToast('热点数据已更新');
+    this.showToast(activeTab === 'ai' ? '已按最新时间点更新本周概要' : '热点数据已更新');
   },
 
   // ===== 竞品参考 =====
