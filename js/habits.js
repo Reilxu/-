@@ -48,16 +48,17 @@
 
   var CATEGORIES = ['工作学习', '生活健康', '健身运动'];
   var ICON_KEYS = Object.keys(HABIT_ICONS).filter(function (k) { return k !== 'circle'; });
+  var REWARD_POINT_PRESETS = [0, 1, 2, 3, 5, 10, 20, 50, 80, 100];
 
   // 习惯模板库
   var TEMPLATES = [
-    { name: '早起', icon: 'sunrise', color: '#FFF3B0', category: '生活健康', frequency_type: 'daily', target_type: 'count', target_value: 1, time_slot_start: '07:00', time_slot_end: '07:30', motivational_quote: '一日之计在于晨' },
-    { name: '阅读 30 分钟', icon: 'book', color: '#B5EAD7', category: '工作学习', frequency_type: 'daily', target_type: 'duration', target_value: 30, time_slot_start: '', time_slot_end: '', motivational_quote: '每天进步一点点' },
-    { name: '喝 8 杯水', icon: 'droplet', color: '#B5D8EB', category: '生活健康', frequency_type: 'daily', target_type: 'quantity', target_value: 8, unit: '杯', time_slot_start: '', time_slot_end: '', motivational_quote: '多喝水身体好' },
-    { name: '冥想 10 分钟', icon: 'sparkles', color: '#E2D5F5', category: '生活健康', frequency_type: 'daily', target_type: 'duration', target_value: 10, time_slot_start: '', time_slot_end: '', motivational_quote: '深呼吸，放空自己' },
-    { name: '背 20 个单词', icon: 'pencil', color: '#C7CEEA', category: '工作学习', frequency_type: 'daily', target_type: 'quantity', target_value: 20, unit: '个', time_slot_start: '', time_slot_end: '', motivational_quote: '积少成多' },
-    { name: '运动 30 分钟', icon: 'activity', color: '#FFB5C2', category: '健身运动', frequency_type: 'daily', target_type: 'duration', target_value: 30, time_slot_start: '', time_slot_end: '', motivational_quote: '动起来更有精神' },
-    { name: '写日记', icon: 'pencil', color: '#FFF9E6', category: '生活健康', frequency_type: 'daily', target_type: 'count', target_value: 1, time_slot_start: '', time_slot_end: '', motivational_quote: '记录今天的小确幸' }
+    { name: '早起', icon: 'sunrise', color: '#FFF3B0', category: '生活健康', frequency_type: 'daily', target_type: 'count', target_value: 1, time_slot_start: '07:00', time_slot_end: '07:30', motivational_quote: '一日之计在于晨', reward_points: 1 },
+    { name: '阅读 30 分钟', icon: 'book', color: '#B5EAD7', category: '工作学习', frequency_type: 'daily', target_type: 'duration', target_value: 30, time_slot_start: '', time_slot_end: '', motivational_quote: '每天进步一点点', reward_points: 1 },
+    { name: '喝 8 杯水', icon: 'droplet', color: '#B5D8EB', category: '生活健康', frequency_type: 'daily', target_type: 'quantity', target_value: 8, unit: '杯', time_slot_start: '', time_slot_end: '', motivational_quote: '多喝水身体好', reward_points: 1 },
+    { name: '冥想 10 分钟', icon: 'sparkles', color: '#E2D5F5', category: '生活健康', frequency_type: 'daily', target_type: 'duration', target_value: 10, time_slot_start: '', time_slot_end: '', motivational_quote: '深呼吸，放空自己', reward_points: 1 },
+    { name: '背 20 个单词', icon: 'pencil', color: '#C7CEEA', category: '工作学习', frequency_type: 'daily', target_type: 'quantity', target_value: 20, unit: '个', time_slot_start: '', time_slot_end: '', motivational_quote: '积少成多', reward_points: 1 },
+    { name: '运动 30 分钟', icon: 'activity', color: '#FFB5C2', category: '健身运动', frequency_type: 'daily', target_type: 'duration', target_value: 30, time_slot_start: '', time_slot_end: '', motivational_quote: '动起来更有精神', reward_points: 1 },
+    { name: '写日记', icon: 'pencil', color: '#FFF9E6', category: '生活健康', frequency_type: 'daily', target_type: 'count', target_value: 1, time_slot_start: '', time_slot_end: '', motivational_quote: '记录今天的小确幸', reward_points: 1 }
   ];
 
   // ---------- 数据访问 ----------
@@ -71,10 +72,24 @@
     return y + '-' + m + '-' + day;
   }
   function dayOfWeek(ds) { return new Date(ds + 'T00:00:00').getDay(); } // 0=Sun..6=Sat
+  function addDays(ds, n) {
+    var d = new Date(ds + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return fmtDate(d);
+  }
+  function startOfWeek(ds) {
+    var d = new Date(ds + 'T00:00:00');
+    var dow = d.getDay(); // 0=Sun
+    var shift = dow === 0 ? -6 : 1 - dow; // 周一为周起点
+    d.setDate(d.getDate() + shift);
+    return fmtDate(d);
+  }
+  function startOfMonth(ds) { return ds.slice(0, 7) + '-01'; }
+  function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 
   // ---------- 状态 ----------
   var root = null;
-  var state = { sub: 'today', pomo: null, makeupDate: null };
+  var state = { sub: 'today', pomo: null, jar: { period: 'week', date: todayStr(), customStart: null, customEnd: null } };
 
   // ---------- 计算：连续天数 / 完成率 / 总量 ----------
   function dayCheckinCount(ds) {
@@ -125,15 +140,11 @@
     candy.push(ball);
     setArr('candyBalls', candy);
   }
-  function jarsFor(dateStr) {
-    var candy = allCandy();
-    var day = candy.filter(function (c) { return c.jar_date === dateStr; });
-    var weekStart = new Date(); weekStart.setDate(weekStart.getDate() - 6);
-    var monthStr = dateStr.slice(0, 7);
-    var week = candy.filter(function (c) { return c.jar_date >= fmtDate(weekStart) && c.jar_date <= dateStr; });
-    var month = candy.filter(function (c) { return (c.jar_date || '').slice(0, 7) === monthStr; });
-    return { day: day, week: week, month: month };
+  function habitColor(habitId) {
+    var h = getArr('habits').filter(function (x) { return x.id === habitId; })[0];
+    return (h && h.color) || '#FFE08A';
   }
+  function habitById(id) { return getArr('habits').filter(function (h) { return h.id === id; })[0]; }
 
   // ---------- 今日需打卡习惯 ----------
   function habitsDueOn(ds) {
@@ -176,10 +187,11 @@
     var tabs = [
       { key: 'today', label: '今日打卡' },
       { key: 'stats', label: '统计' },
+      { key: 'jar', label: '球罐' },
       { key: 'pomodoro', label: '番茄钟' },
       { key: 'notes', label: '碎念笔记' },
       { key: 'rewards', label: '奖励商店' },
-      { key: 'settings', label: '设置' }
+      { key: 'settings', label: '习惯管理' }
     ];
     var tabHtml = tabs.map(function (t) {
       return '<button class="habits-tab ' + (state.sub === t.key ? 'active' : '') + '" data-act="tab" data-tab="' + t.key + '">' + t.label + '</button>';
@@ -195,6 +207,7 @@
     if (!view) return;
     if (state.sub === 'today') view.innerHTML = renderToday();
     else if (state.sub === 'stats') view.innerHTML = renderStats();
+    else if (state.sub === 'jar') view.innerHTML = renderJar();
     else if (state.sub === 'pomodoro') view.innerHTML = renderPomodoro();
     else if (state.sub === 'notes') view.innerHTML = renderNotes();
     else if (state.sub === 'rewards') view.innerHTML = renderRewards();
@@ -222,16 +235,12 @@
 
     var cards;
     if (due.length === 0) {
-      cards = '<div class="habits-empty">今天没有需要打卡的习惯，去「设置」里添加吧～</div>';
+      cards = '<div class="habits-empty">今天没有需要打卡的习惯，去「习惯管理」里添加吧～</div>';
     } else {
       cards = '<div class="habits-cards">' + due.map(function (h) { return habitCardHTML(h, ds); }).join('') + '</div>';
     }
 
-    var makeupBtn = '<div class="habits-today-foot">' +
-      '<button class="habits-btn-ghost" data-act="makeup">📅 补签（近 7 天）</button>' +
-      '</div>';
-
-    return header + cards + makeupBtn;
+    return header + cards;
   }
 
   function habitCardHTML(h, ds) {
@@ -245,19 +254,25 @@
     var time = (h.time_slot_start ? h.time_slot_start : '') + (h.time_slot_end ? '–' + h.time_slot_end : '');
     var timeHtml = time ? '<div class="habit-card-time">🕒 ' + esc(time) + '</div>' : '';
     return '<div class="habit-card ' + (done ? 'is-done' : '') + '" data-act="check" data-id="' + h.id + '" data-type="' + h.target_type + '">' +
-      '<div class="habit-card__inner">' +
-        '<div class="habit-card__face habit-card__front">' +
-          '<div class="habit-icon-wrap" style="background:' + esc(h.color) + '">' + (HABIT_ICONS[h.icon] || HABIT_ICONS.circle) + '</div>' +
-          '<div class="habit-card-info">' +
-            '<div class="habit-card-name">' + esc(h.name) + '</div>' +
-            '<div class="habit-card-target">' + esc(targetLabel(h)) + '</div>' +
-            timeHtml + progress +
-          '</div>' +
-          '<div class="habit-card-check">' + (done ? Icons.check : '<span class="habit-plus">+</span>') + '</div>' +
-        '</div>' +
-        '<div class="habit-card__face habit-card__back"><div class="habit-card-back-inner">✓<span>已完成</span></div></div>' +
+      '<div class="habit-icon-wrap" style="background:' + esc(h.color) + '">' + (HABIT_ICONS[h.icon] || HABIT_ICONS.circle) + '</div>' +
+      '<div class="habit-card-info">' +
+        '<div class="habit-card-name">' + esc(h.name) + '</div>' +
+        '<div class="habit-card-target">' + esc(targetLabel(h)) + '</div>' +
+        timeHtml + progress +
       '</div>' +
+      '<div class="habit-card-check">' + (done ? Icons.check : '<span class="habit-plus">+</span>') + '</div>' +
     '</div>';
+  }
+
+  function ripple(e, el) {
+    var r = document.createElement('span');
+    r.className = 'habit-ripple';
+    var rect = el.getBoundingClientRect();
+    var x = (e.clientX - rect.left);
+    var y = (e.clientY - rect.top);
+    r.style.left = x + 'px'; r.style.top = y + 'px';
+    el.appendChild(r);
+    setTimeout(function () { r.remove(); }, 520);
   }
 
   // ---------- 统计 ----------
@@ -265,10 +280,7 @@
     var streak = computeStreak();
     var rate = completionRate30();
     var total = totalCheckins();
-    var candy = allCandy();
     var points = totalPoints();
-    var ds = todayStr();
-    var jars = jarsFor(ds);
 
     var cards =
       statCard('🔥 连续打卡', streak + ' 天', 'streak') +
@@ -277,13 +289,11 @@
 
     var heat = renderHeatmap();
     var trend = renderTrend();
-    var jar = renderJarCard(jars, points);
 
     return '<div class="habits-stats">' +
       '<div class="habits-stat-row">' + cards + '</div>' +
       '<div class="habits-card"><div class="habits-card-title">🗓️ 打卡热力图（近 12 个月）</div>' + heat + '</div>' +
       '<div class="habits-card"><div class="habits-card-title">📈 近 30 天趋势</div>' + trend + '</div>' +
-      jar +
       '</div>';
   }
   function statCard(label, value, cls) {
@@ -324,37 +334,137 @@
     }).join('');
     return '<div class="habits-trend">' + bars + '</div>';
   }
-  function renderJarCard(jars, points) {
-    function jarHTML(list, label) {
-      if (list.length === 0) return '<div class="candy-jar-empty">（空）</div>';
-      var balls = list.slice(0, 60).map(function (c) {
-        var color = c.ball_type === 'rainbow' ? 'candy-rainbow' : (c.ball_type === 'focus' ? 'candy-focus' : 'candy-normal');
-        return '<span class="candy-ball ' + color + '"></span>';
-      }).join('');
-      return '<div class="candy-jar">' + balls + '</div>';
+
+  // ---------- 球罐 ----------
+  function periodRange() {
+    var cfg = state.jar;
+    var end, start, label;
+    if (cfg.period === 'week') {
+      start = startOfWeek(cfg.date);
+      end = addDays(start, 6);
+      label = start.slice(5) + ' → ' + end.slice(5);
+    } else if (cfg.period === 'month') {
+      var d = new Date(cfg.date + 'T00:00:00');
+      start = startOfMonth(cfg.date);
+      end = fmtDate(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+      label = cfg.date.slice(0, 7).replace('-', ' 年 ') + ' 月';
+    } else if (cfg.period === 'year') {
+      var y = cfg.date.slice(0, 4);
+      start = y + '-01-01'; end = y + '-12-31'; label = y + ' 年';
+    } else {
+      start = cfg.customStart || cfg.date;
+      end = cfg.customEnd || cfg.date;
+      label = start.slice(5) + ' → ' + end.slice(5);
     }
-    var ds = todayStr();
-    var monthFull = isMonthFull();
-    return '<div class="habits-card">' +
-      '<div class="habits-card-title">🍬 小球罐 · 积分 ' + points + ' <button class="habits-link-btn" data-act="tab" data-tab="rewards">去兑换 ›</button></div>' +
-      '<div class="candy-jars">' +
-        '<div class="candy-jar-col"><div class="candy-jar-label">日罐（今天）</div>' + jarHTML(jars.day) + '<div class="candy-jar-count">' + jars.day.length + ' 颗</div></div>' +
-        '<div class="candy-jar-col"><div class="candy-jar-label">周罐（近7天）</div>' + jarHTML(jars.week) + '<div class="candy-jar-count">' + jars.week.length + ' 颗</div></div>' +
-        '<div class="candy-jar-col"><div class="candy-jar-label">月罐（本月）' + (monthFull ? ' ⭐' : '') + '</div>' + jarHTML(jars.month) + '<div class="candy-jar-count">' + jars.month.length + ' 颗</div></div>' +
+    return { start: start, end: end, label: label };
+  }
+  function periodCandy(start, end) {
+    return allCandy().filter(function (c) { return c.jar_date >= start && c.jar_date <= end; });
+  }
+  function periodHabitCompletion(start, end) {
+    var habits = getArr('habits').filter(function (h) { return !h.is_archived; });
+    var checkins = getArr('checkins');
+    return habits.map(function (h) {
+      var cnt = 0;
+      checkins.forEach(function (c) { if (c.habit_id === h.id && c.checkin_date >= start && c.checkin_date <= end) cnt++; });
+      return { habit: h, count: cnt };
+    }).filter(function (x) { return x.count > 0; }).sort(function (a, b) { return b.count - a.count; });
+  }
+
+  function renderJar() {
+    var range = periodRange();
+    var candy = periodCandy(range.start, range.end);
+    var points = candy.reduce(function (s, c) { return s + (Number(c.point_value) || 0); }, 0);
+    var periodBtns = [
+      { k: 'week', l: '周' }, { k: 'month', l: '月' }, { k: 'year', l: '年' }, { k: 'custom', l: '自定义' }
+    ].map(function (b) {
+      return '<button class="habits-period-btn ' + (state.jar.period === b.k ? 'active' : '') + '" data-act="jar-period" data-period="' + b.k + '">' + b.l + '</button>';
+    }).join('');
+    var nav = '<div class="jar-period-nav">' +
+      '<button class="jar-nav-arrow" data-act="jar-prev">‹</button>' +
+      '<div class="jar-period-label">' + esc(range.label) + '</div>' +
+      '<button class="jar-nav-arrow" data-act="jar-next">›</button></div>';
+
+    var customInputs = state.jar.period === 'custom'
+      ? '<div class="jar-custom-row">' +
+          '<input type="date" class="habits-input" id="jarStart" value="' + esc(range.start) + '">' +
+          '<span>—</span>' +
+          '<input type="date" class="habits-input" id="jarEnd" value="' + esc(range.end) + '">' +
+          '<button class="habits-btn" data-act="jar-custom-apply">确定</button>' +
+        '</div>'
+      : '';
+
+    var jarHTML = renderGlassJar(candy);
+    var completion = periodHabitCompletion(range.start, range.end);
+    var listHtml = completion.length === 0
+      ? '<div class="habits-empty" style="margin-top:14px">该时段还没有完成的习惯</div>'
+      : '<div class="jar-habit-list">' + completion.map(function (x) {
+          return '<div class="jar-habit-row">' +
+            '<div class="habit-icon-wrap" style="background:' + esc(x.habit.color) + '">' + (HABIT_ICONS[x.habit.icon] || HABIT_ICONS.circle) + '</div>' +
+            '<div class="jar-habit-info">' +
+              '<div class="jar-habit-name">' + esc(x.habit.name) + '</div>' +
+              '<div class="jar-habit-meta">完成 ' + x.count + ' 次 · +' + (x.count * (Number(x.habit.reward_points) || 1)) + ' 糖</div>' +
+            '</div>' +
+          '</div>';
+        }).join('') + '</div>';
+
+    return '<div class="habits-jar">' +
+      '<div class="jar-period-btns">' + periodBtns + '</div>' +
+      nav + customInputs +
+      '<div class="jar-card">' +
+        '<div class="jar-title-row"><span>🍬 ' + (state.jar.period === 'week' ? '本周' : (state.jar.period === 'month' ? '本月' : (state.jar.period === 'year' ? '本年' : '自选'))) + '小球罐</span><span class="jar-points">+' + points + ' 糖</span></div>' +
+        jarHTML +
       '</div>' +
+      '<div class="habits-card"><div class="habits-card-title">习惯完成情况</div>' + listHtml + '</div>' +
       '</div>';
   }
-  function isMonthFull() {
-    var now = new Date();
-    var y = now.getFullYear(), m = now.getMonth();
-    var daysInMonth = new Date(y, m + 1, 0).getDate();
-    for (var day = 1; day <= daysInMonth; day++) {
-      var d = new Date(y, m, day);
-      if (d > now) break;
-      var ds = fmtDate(d);
-      if (dayCheckinCount(ds) === 0) return false;
+
+  function renderGlassJar(candy) {
+    var maxShow = 80;
+    var list = candy.slice(0, maxShow);
+    var balls = [];
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      var isRainbow = c.ball_type === 'rainbow';
+      var isFocus = c.ball_type === 'focus';
+      var h = !isRainbow && !isFocus ? habitById(c.habit_id) : null;
+      var color = isRainbow ? 'linear-gradient(135deg,#FFB5C2,#B5EAD7,#C7CEEA)' : (isFocus ? '#A6C8FF' : habitColor(c.habit_id));
+      var icon = (h && HABIT_ICONS[h.icon]) ? HABIT_ICONS[h.icon].replace('width="22" height="22"', 'width="12" height="12"') : '';
+      balls.push('<div class="jar-candy" style="background:' + esc(color) + ';animation-delay:' + (i * 0.015) + 's" title="' + (h ? esc(h.name) : c.ball_type) + ' · ' + (c.jar_date || '') + '">' + icon + '</div>');
     }
-    return true;
+    var overflow = candy.length - maxShow;
+    var overflowTag = overflow > 0 ? '<div class="jar-overflow">+' + overflow + '</div>' : '';
+    return '<div class="jar-glass" data-act="jar-shake">' +
+      '<svg class="jar-svg" viewBox="0 0 260 180">' +
+        '<defs>' +
+          '<linearGradient id="jarGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+            '<stop offset="0%" style="stop-color:rgba(255,255,255,0.55)"/>' +
+            '<stop offset="50%" style="stop-color:rgba(230,240,220,0.25)"/>' +
+            '<stop offset="100%" style="stop-color:rgba(200,210,190,0.35)"/>' +
+          '</linearGradient>' +
+          '<clipPath id="jarClip"><path d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z"/></clipPath>' +
+        '</defs>' +
+        '<rect x="0" y="0" width="260" height="180" fill="transparent"/>' +
+        '<path class="jar-body" d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z" fill="url(#jarGlassGrad)" stroke="rgba(180,190,170,0.5)" stroke-width="2"/>' +
+        '<rect x="30" y="6" width="200" height="8" rx="4" fill="rgba(160,170,150,0.35)"/>' +
+      '</svg>' +
+      '<div class="jar-candy-pile">' + balls.join('') + '</div>' +
+      overflowTag +
+      '</div>';
+  }
+
+  function shiftJarDate(dir) {
+    var cfg = state.jar;
+    if (cfg.period === 'week') { cfg.date = addDays(cfg.date, dir * 7); }
+    else if (cfg.period === 'month') {
+      var d = new Date(cfg.date + 'T00:00:00');
+      d.setMonth(d.getMonth() + dir);
+      cfg.date = fmtDate(d);
+    } else if (cfg.period === 'year') {
+      var y = parseInt(cfg.date.slice(0, 4)) + dir;
+      cfg.date = y + cfg.date.slice(4);
+    }
+    // custom 保持当前自定义区间不动，由 apply 更新
   }
 
   // ---------- 番茄钟 ----------
@@ -475,15 +585,20 @@
 
   // ---------- 碎念笔记 ----------
   function renderNotes() {
-    var notes = getArr('habitNotes').slice().sort(function (a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
+    var notes = getArr('habitNotes').slice().sort(function (a, b) {
+      var da = a.record_date || a.created_at || '';
+      var db = b.record_date || b.created_at || '';
+      return db.localeCompare(da);
+    });
     var list = notes.length === 0
       ? '<div class="habits-empty">还没有碎念笔记，写下此刻的想法吧～</div>'
       : '<div class="habits-notes-list">' + notes.map(function (n) {
           var tags = (n.tags || []).map(function (t) { return '<span class="note-tag">#' + esc(t) + '</span>'; }).join('');
+          var recordDate = n.record_date || (n.created_at ? n.created_at.slice(0, 10) : '');
           var time = n.created_at ? new Date(n.created_at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
           return '<div class="note-item"><div class="note-content">' + esc(n.content) + '</div>' +
             (tags ? '<div class="note-tags">' + tags + '</div>' : '') +
-            '<div class="note-foot"><span class="note-time">' + esc(time) + '</span>' +
+            '<div class="note-foot"><span class="note-time">📅 ' + esc(recordDate) + (time ? ' · ' + esc(time) : '') + '</span>' +
             '<button class="note-del" data-act="note-del" data-id="' + n.id + '">删除</button></div></div>';
         }).join('') + '</div>';
     return '<div class="habits-notes">' +
@@ -517,7 +632,7 @@
       grid + '</div>';
   }
 
-  // ---------- 设置（习惯管理）----------
+  // ---------- 习惯管理 ----------
   function renderSettings() {
     var habits = getArr('habits');
     var active = habits.filter(function (h) { return !h.is_archived; });
@@ -528,7 +643,7 @@
         return '<div class="habit-row">' +
           '<div class="habit-icon-wrap" style="background:' + esc(h.color) + '">' + (HABIT_ICONS[h.icon] || HABIT_ICONS.circle) + '</div>' +
           '<div class="habit-row-info"><div class="habit-row-name">' + esc(h.name) + '</div>' +
-          '<div class="habit-row-meta">' + esc(h.category) + ' · ' + esc(targetLabel(h)) + ' · ' + freqText(h) + '</div></div>' +
+          '<div class="habit-row-meta">' + esc(h.category) + ' · ' + esc(targetLabel(h)) + ' · ' + freqText(h) + ' · 奖励 ' + (Number(h.reward_points) || 1) + ' 糖</div></div>' +
           '<div class="habit-row-actions">' +
             '<button class="icon-sm" data-act="habit-edit" data-id="' + h.id + '" title="编辑">✎</button>' +
             (h.is_archived ? '<button class="icon-sm" data-act="habit-unarchive" data-id="' + h.id + '" title="恢复">↩</button>' : '<button class="icon-sm" data-act="habit-archive" data-id="' + h.id + '" title="归档">📥</button>') +
@@ -560,17 +675,17 @@
     var checkins = getArr('checkins');
     var idx = checkins.findIndex(function (c) { return c.habit_id === habit.id && c.checkin_date === ds; });
     var c;
+    var points = Number(habit.reward_points) || 1;
     if (idx >= 0) {
       c = checkins[idx];
       c.value = value;
-      c.is_makeup = c.is_makeup || (ds !== todayStr());
     } else {
-      c = { id: Store.genId(), habit_id: habit.id, checkin_date: ds, value: value, note: '', is_makeup: (ds !== todayStr()), created_at: new Date().toISOString() };
+      c = { id: Store.genId(), habit_id: habit.id, checkin_date: ds, value: value, note: '', created_at: new Date().toISOString() };
       checkins.push(c);
     }
     setArr('checkins', checkins);
-    // 糖球
-    addCandy({ habit_id: habit.id, checkin_id: c.id, ball_type: 'normal', point_value: 1, jar_date: ds });
+    // 糖球：按习惯配置的奖励数量
+    addCandy({ habit_id: habit.id, checkin_id: c.id, ball_type: 'normal', point_value: points, jar_date: ds });
     // 连续天数加成：满 7/14/21/30 天额外彩虹糖球
     var streak = computeStreak();
     if (streak > 0 && streak % 7 === 0) {
@@ -587,7 +702,7 @@
   function undoCheckin(habit, ds) {
     var checkins = getArr('checkins').filter(function (c) { return !(c.habit_id === habit.id && c.checkin_date === ds); });
     setArr('checkins', checkins);
-    // 移除当日相关糖球（普通+彩虹）
+    // 移除当日相关糖球
     var candy = allCandy().filter(function (cb) { return !(cb.habit_id === habit.id && cb.jar_date === ds); });
     setArr('candyBalls', candy);
     renderSub();
@@ -595,7 +710,9 @@
 
   // ---------- 表单：习惯 ----------
   function openHabitForm(existing, tpl) {
-    var h = existing || tpl || { name: '', icon: 'circle', color: MACARON[0].value, category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'count', target_value: 1, unit: '个', time_slot_start: '', time_slot_end: '', motivational_quote: '' };
+    var h = existing || tpl || { name: '', icon: 'circle', color: MACARON[0].value, category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'count', target_value: 1, unit: '个', time_slot_start: '', time_slot_end: '', motivational_quote: '', reward_points: 1 };
+    // 兼容旧数据没有 reward_points
+    if (typeof h.reward_points !== 'number' && typeof h.reward_points !== 'string') h.reward_points = 1;
     var iconGrid = ICON_KEYS.map(function (k) {
       return '<button type="button" class="icon-pick ' + (h.icon === k ? 'sel' : '') + '" data-icon="' + k + '">' + (HABIT_ICONS[k] || '') + '</button>';
     }).join('');
@@ -610,6 +727,10 @@
       return '<label class="day-chk"><input type="checkbox" value="' + d + '" ' + checked + '>周' + names[d === 0 ? 6 : d - 1] + '</label>';
     }).join('');
     var typeOpts = [['count', '按次'], ['duration', '按时长'], ['quantity', '按数量']].map(function (o) { return '<option value="' + o[0] + '" ' + (h.target_type === o[0] ? 'selected' : '') + '>' + o[1] + '</option>'; }).join('');
+
+    var rewardChips = REWARD_POINT_PRESETS.map(function (p) {
+      return '<button type="button" class="reward-chip ' + ((Number(h.reward_points) || 0) === p ? 'sel' : '') + '" data-rp="' + p + '">' + p + '</button>';
+    }).join('');
 
     var html = '<div class="habit-form">' +
       '<div class="form-group"><label>习惯名称</label><input id="hfName" class="habits-input" value="' + esc(h.name) + '" placeholder="如：早起、阅读"></div>' +
@@ -626,13 +747,28 @@
       '<div class="form-group"><label>时段（可选）</label><div class="time-row">' +
         '<input id="hfStart" class="habits-input" type="time" value="' + esc(h.time_slot_start || '') + '"> — <input id="hfEnd" class="habits-input" type="time" value="' + esc(h.time_slot_end || '') + '"></div></div>' +
       '<div class="form-group"><label>激励语（可选）</label><input id="hfQuote" class="habits-input" value="' + esc(h.motivational_quote || '') + '" placeholder="如：一天的好心情从早起开始"></div>' +
+      '<div class="form-group"><label>每次完成奖励糖数</label><div class="reward-chip-row">' + rewardChips + '</div>' +
+        '<div class="reward-custom-row"><button class="reward-step" data-step="-1">−</button>' +
+        '<input id="hfReward" class="habits-input" type="number" min="0" max="100" value="' + (Number(h.reward_points) || 0) + '">' +
+        '<button class="reward-step" data-step="1">+</button><span class="reward-range">（0-100）</span></div></div>' +
       '<div class="form-actions"><button class="habits-btn" id="hfSave">保存</button><button class="habits-btn-ghost" id="hfCancel">取消</button></div>' +
       '</div>';
     App.showModal(html);
-    var sel = { icon: h.icon, color: h.color };
+    var sel = { icon: h.icon, color: h.color, reward: Number(h.reward_points) || 0 };
     var modal = document.getElementById('modalContainer');
     modal.querySelectorAll('.icon-pick').forEach(function (b) { b.addEventListener('click', function () { sel.icon = b.dataset.icon; modal.querySelectorAll('.icon-pick').forEach(function (x) { x.classList.remove('sel'); }); b.classList.add('sel'); }); });
     modal.querySelectorAll('.color-pick').forEach(function (b) { b.addEventListener('click', function () { sel.color = b.dataset.color; modal.querySelectorAll('.color-pick').forEach(function (x) { x.classList.remove('sel'); }); b.classList.add('sel'); }); });
+
+    var rewardInput = modal.querySelector('#hfReward');
+    function setReward(v) {
+      v = Math.max(0, Math.min(100, parseInt(v) || 0));
+      sel.reward = v; rewardInput.value = v;
+      modal.querySelectorAll('.reward-chip').forEach(function (x) { x.classList.toggle('sel', parseInt(x.dataset.rp) === v); });
+    }
+    modal.querySelectorAll('.reward-chip').forEach(function (b) { b.addEventListener('click', function () { setReward(b.dataset.rp); }); });
+    modal.querySelectorAll('.reward-step').forEach(function (b) { b.addEventListener('click', function () { setReward((parseInt(rewardInput.value) || 0) + parseInt(b.dataset.step)); }); });
+    rewardInput.addEventListener('change', function () { setReward(rewardInput.value); });
+
     var freqSel = modal.querySelector('#hfFreq');
     var daysBox = modal.querySelector('#hfDays');
     function toggleDays() { daysBox.style.display = freqSel.value === 'custom' ? 'flex' : 'none'; }
@@ -656,6 +792,7 @@
         unit: modal.querySelector('#hfUnit').value.trim() || '个',
         time_slot_start: modal.querySelector('#hfStart').value || '', time_slot_end: modal.querySelector('#hfEnd').value || '',
         motivational_quote: modal.querySelector('#hfQuote').value.trim(),
+        reward_points: sel.reward,
         is_archived: existing ? !!existing.is_archived : false, created_at: existing ? existing.created_at : new Date().toISOString()
       };
       var arr = getArr('habits');
@@ -696,38 +833,11 @@
     });
   }
 
-  // ---------- 补签 ----------
-  function openMakeup() {
-    var ds = todayStr();
-    var d = new Date(); d.setDate(d.getDate() - 6);
-    var dates = [];
-    for (var i = 0; i < 7; i++) { dates.push(fmtDate(d)); d.setDate(d.getDate() + 1); }
-    dates.reverse();
-    var due = getArr('habits').filter(function (h) { return !h.is_archived; });
-    var dateOpts = dates.map(function (dt) {
-      var label = new Date(dt + 'T00:00:00').toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'short' });
-      return '<option value="' + dt + '" ' + (dt === ds ? 'selected' : '') + '>' + label + (dt === ds ? '（今天）' : '') + '</option>';
-    }).join('');
-    var habitOpts = due.map(function (h) { return '<option value="' + h.id + '">' + esc(h.name) + '</option>'; }).join('');
-    var html = '<div class="makeup-modal"><div class="vm-title">补签打卡</div>' +
-      '<div class="form-group"><label>日期</label><select id="mkDate" class="habits-select">' + dateOpts + '</select></div>' +
-      '<div class="form-group"><label>习惯</label><select id="mkHabit" class="habits-select">' + habitOpts + '</select></div>' +
-      '<div class="form-actions"><button class="habits-btn" id="mkSave">补签</button><button class="habits-btn-ghost" id="mkCancel">取消</button></div></div>';
-    App.showModal(html);
-    var modal = document.getElementById('modalContainer');
-    modal.querySelector('#mkCancel').addEventListener('click', function () { App.closeModal(); });
-    modal.querySelector('#mkSave').addEventListener('click', function () {
-      var date = modal.querySelector('#mkDate').value;
-      var hid = modal.querySelector('#mkHabit').value;
-      var habit = due.filter(function (h) { return h.id === hid; })[0];
-      if (habit && !isHabitDone(habit, date)) { App.closeModal(); doCheckin(habit, date, habit.target_type === 'count' ? 1 : (habit.target_type === 'duration' ? habit.target_value : 1), false); App.showToast('补签成功'); }
-      else { App.showToast('该习惯当日已打卡'); }
-    });
-  }
-
   // ---------- 笔记 ----------
   function openNoteForm() {
-    var html = '<div class="note-form"><textarea id="nfContent" class="habits-textarea" placeholder="此刻在想什么？"></textarea>' +
+    var html = '<div class="note-form">' +
+      '<div class="form-group"><label>记录日期</label><input type="date" id="nfDate" class="habits-input" value="' + todayStr() + '"></div>' +
+      '<textarea id="nfContent" class="habits-textarea" placeholder="此刻在想什么？"></textarea>' +
       '<input id="nfTags" class="habits-input" placeholder="标签（用空格分隔，可选）">' +
       '<div class="form-actions"><button class="habits-btn" id="nfSave">保存</button><button class="habits-btn-ghost" id="nfCancel">取消</button></div></div>';
     App.showModal(html);
@@ -737,8 +847,9 @@
       var content = modal.querySelector('#nfContent').value.trim();
       if (!content) { App.showToast('写点什么吧'); return; }
       var tags = modal.querySelector('#nfTags').value.trim().split(/\s+/).filter(Boolean);
+      var recordDate = modal.querySelector('#nfDate').value || todayStr();
       var notes = getArr('habitNotes');
-      notes.push({ id: Store.genId(), content: content, tags: tags, created_at: new Date().toISOString() });
+      notes.push({ id: Store.genId(), content: content, tags: tags, record_date: recordDate, created_at: new Date().toISOString() });
       setArr('habitNotes', notes);
       App.closeModal();
       renderSub();
@@ -802,9 +913,9 @@
     if (getArr('habits').length === 0) {
       var now = new Date().toISOString();
       var seedHabits = [
-        { id: Store.genId(), name: '早起', icon: 'sunrise', color: '#FFF3B0', category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'count', target_value: 1, unit: '个', time_slot_start: '07:00', time_slot_end: '07:30', motivational_quote: '一日之计在于晨', is_archived: false, created_at: now },
-        { id: Store.genId(), name: '阅读 30 分钟', icon: 'book', color: '#B5EAD7', category: '工作学习', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'duration', target_value: 30, unit: '分钟', time_slot_start: '', time_slot_end: '', motivational_quote: '每天进步一点点', is_archived: false, created_at: now },
-        { id: Store.genId(), name: '喝 8 杯水', icon: 'droplet', color: '#B5D8EB', category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'quantity', target_value: 8, unit: '杯', time_slot_start: '', time_slot_end: '', motivational_quote: '多喝水身体好', is_archived: false, created_at: now }
+        { id: Store.genId(), name: '早起', icon: 'sunrise', color: '#FFF3B0', category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'count', target_value: 1, unit: '个', time_slot_start: '07:00', time_slot_end: '07:30', motivational_quote: '一日之计在于晨', reward_points: 1, is_archived: false, created_at: now },
+        { id: Store.genId(), name: '阅读 30 分钟', icon: 'book', color: '#B5EAD7', category: '工作学习', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'duration', target_value: 30, unit: '分钟', time_slot_start: '', time_slot_end: '', motivational_quote: '每天进步一点点', reward_points: 1, is_archived: false, created_at: now },
+        { id: Store.genId(), name: '喝 8 杯水', icon: 'droplet', color: '#B5D8EB', category: '生活健康', frequency_type: 'daily', frequency_days: [1, 2, 3, 4, 5, 6, 7], target_type: 'quantity', target_value: 8, unit: '杯', time_slot_start: '', time_slot_end: '', motivational_quote: '多喝水身体好', reward_points: 1, is_archived: false, created_at: now }
       ];
       setArr('habits', seedHabits);
     }
@@ -847,12 +958,12 @@
         var ds = todayStr();
         var habit = getArr('habits').filter(function (h) { return h.id === id; })[0];
         if (!habit) return;
+        ripple(e, t);
         if (isHabitDone(habit, ds)) { undoCheckin(habit, ds); return; }
         if (habit.target_type === 'count') { doCheckin(habit, ds, 1, true); }
         else { openValueModal(habit, ds); }
         return;
       }
-      if (act === 'makeup') { openMakeup(); return; }
       if (act === 'habit-add') { openHabitForm(null, null); return; }
       if (act === 'habit-edit') { var eh = getArr('habits').filter(function (h) { return h.id === id; })[0]; if (eh) openHabitForm(eh, null); return; }
       if (act === 'tpl') { var tp = TEMPLATES.filter(function (x) { return x.name === t.dataset.name; })[0]; if (tp) openHabitForm(null, tp); return; }
@@ -865,6 +976,19 @@
       if (act === 'reward-del') { var dr = getArr('rewardItems').filter(function (r) { return r.id !== id; }); setArr('rewardItems', dr); renderSub(); return; }
       if (act === 'redeem') { redeemReward(id); return; }
       if (act === 'blindbox') { blindBox(); return; }
+      // 球罐
+      if (act === 'jar-period') { state.jar.period = t.dataset.period; if (state.jar.period === 'custom') { state.jar.customStart = todayStr(); state.jar.customEnd = todayStr(); } renderSub(); return; }
+      if (act === 'jar-prev') { shiftJarDate(-1); renderSub(); return; }
+      if (act === 'jar-next') { shiftJarDate(1); renderSub(); return; }
+      if (act === 'jar-custom-apply') {
+        var s = root.querySelector('#jarStart'); var e = root.querySelector('#jarEnd');
+        if (s && e) { state.jar.customStart = s.value; state.jar.customEnd = e.value; }
+        renderSub(); return;
+      }
+      if (act === 'jar-shake') { t.classList.add('jar-shaking'); setTimeout(function () { t.classList.remove('jar-shaking'); }, 520); return; }
+      // 番茄钟按钮（initPomo 已绑定大部分，这里兜底）
+      if (act === 'pomo-start') { var p = state.pomo; p.running ? pausePomo() : startPomo(); return; }
+      if (act === 'pomo-reset') { resetPomo(); return; }
     });
   }
   function updateTabActive() {
