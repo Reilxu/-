@@ -2087,7 +2087,7 @@ ${desc || "（无）"}
    * @returns {Promise<{score:number, stars:number, luckyColor:string, luckyFood:string, advice:string, avoid:string, quote:string, source:string}>}
    */
   async function generateDailyFortune(profile, force = false) {
-    const { birthDate, zodiac } = profile || {};
+    const { birthDate, zodiac, wuxing } = profile || {};
     const today = new Date().toLocaleDateString("zh-CN", {
       year: "numeric",
       month: "2-digit",
@@ -2107,17 +2107,19 @@ ${desc || "（无）"}
       return makeError("NO_API_KEY", null, "请先在设置中配置 Deepseek API Key 以生成运势");
     }
 
-    const systemPrompt = `你是一位温和的星座运势分析师，每天为用户生成一份轻松正向、适合内容创作者每日开工参考的运势。
+    const systemPrompt = `你是一位温和的星座与五行运势分析师，每天结合用户的星座与当日五行，为用户生成一份轻松正向、适合内容创作者每日开工参考的运势。
 
 用户档案：
 - 生日：${birthDate || "未提供"}
 - 星座：${zodiac || "未提供"}
+- 当日五行：${wuxing || "未提供"}（金、木、水、火、土之一）
 - 日期：${today}
 
 请严格按以下 JSON 格式输出（不要 markdown 代码块）：
 {
   "score": 82,
   "stars": 4,
+  "wuxing": "木",
   "luckyColor": "薄荷绿",
   "luckyColorHex": "#A0E8AF",
   "luckyFood": "牛油果吐司",
@@ -2129,10 +2131,11 @@ ${desc || "（无）"}
 要求：
 - score：0-100 的整数，体现今日整体运势高低；
 - stars：1-5 的整数，根据 score 四舍五入（score>=90 给 5 星，>=70 给 4 星，>=50 给 3 星，>=30 给 2 星，否则 1 星）；
+- wuxing：当日五行，取「金/木/水/火/土」之一，需与用户档案中的当日五行保持一致；
 - luckyColor：一个具体的颜色名称，同时给出相近的 luckyColorHex；
 - luckyFood：一个具体食物；
-- advice：一条针对 AI 自媒体内容创作者的当日行动建议，20 字内；
-- avoid：一条当日需要避开的行为或事项，20 字内；
+- advice：一条结合当日星座与五行的当日行动建议，20 字内；
+- avoid：一条结合当日星座与五行的当日需要避开的行为或事项，20 字内；
 - quote：一句温暖励志的短句，30 字内。`;
 
     const result = await aiChat(
@@ -2156,6 +2159,7 @@ ${desc || "（无）"}
       const fortune = {
         score: Math.min(100, Math.max(0, Math.round(Number(parsed.score) || 75))),
         stars: Math.min(5, Math.max(1, Math.round(Number(parsed.stars) || 4))),
+        wuxing: String(parsed.wuxing || wuxing || "木"),
         luckyColor: String(parsed.luckyColor || "幸运色"),
         luckyColorHex: String(parsed.luckyColorHex || "#C2F84F"),
         luckyFood: String(parsed.luckyFood || "美食"),
