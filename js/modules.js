@@ -249,6 +249,14 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.34',
+      content: `v3.3.34更新。
+- 纠正 v3.3.33 中"模块之间不留白"的误读：恢复各模块之间协调美观的留白
+- 左侧 hero-left-stack 内部间距由 0 调整为 16px，today-hero 左右列间距保持 16px，整体留白节奏统一`,
+      impact: '首页模块之间保留美观留白，不再完全紧贴',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.33',
       content: `v3.3.33更新。
 - 首页 today-hero 布局重组：左侧改为「绿色欢迎 banner + 提醒 & 动态」上下堆叠，中间无间隔；右侧整列留给今日运势模块
