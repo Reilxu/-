@@ -21,13 +21,22 @@ const Store = {
     videos: 'xl_videos',
     reports: 'xl_reports',
     alerts: 'xl_alerts',
+    habits: 'xl_habits',
+    checkins: 'xl_checkins',
+    pomodoro: 'xl_pomodoro',
+    habitNotes: 'xl_habit_notes',
+    candyBalls: 'xl_candy_balls',
+    rewardItems: 'xl_reward_items',
+    redemptions: 'xl_redemptions',
   },
 
   // 需要同步到云端的 bucket（排除纯缓存类 aiNews / hotTopics）
   SYNC_BUCKETS: [
     'xl_today', 'xl_content', 'xl_topics', 'xl_materials',
     'xl_inbox', 'xl_links', 'xl_ai_chat', 'xl_decomp',
-    'xl_mcn_output', 'xl_videos', 'xl_reports', 'xl_alerts'
+    'xl_mcn_output', 'xl_videos', 'xl_reports', 'xl_alerts',
+    'xl_habits', 'xl_checkins', 'xl_pomodoro', 'xl_habit_notes',
+    'xl_candy_balls', 'xl_reward_items', 'xl_redemptions'
   ],
 
   // 云端登录态（由 auth.js 通过 setCloudUser 设置）

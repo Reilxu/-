@@ -121,7 +121,9 @@ const App = {
       settings: () => this.renderSettings(),
     };
 
-    if (renderMap[module]) {
+    if (module === 'habits') {
+      if (window.HabitsModule) window.HabitsModule.render(container);
+    } else if (renderMap[module]) {
       container.innerHTML = renderMap[module]();
       this.bindModuleEvents(module);
     }
