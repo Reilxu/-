@@ -120,7 +120,7 @@
   }
   function totalCheckins() { return getArr('checkins').length; }
 
-  // ---------- 糖球 / 积分 ----------
+  // ---------- 糖球 / 糖果 ----------
   function allCandy() { return getArr('candyBalls'); }
   function totalPoints() {
     var candy = allCandy().reduce(function (s, c) { return s + (Number(c.point_value) || 0); }, 0);
@@ -189,10 +189,10 @@
     var tabs = [
       { key: 'today', label: '今日打卡' },
       { key: 'stats', label: '统计' },
-      { key: 'jar', label: '球罐' },
+      { key: 'jar', label: '糖罐' },
       { key: 'pomodoro', label: '番茄钟' },
       { key: 'notes', label: '碎念笔记' },
-      { key: 'rewards', label: '奖励商店' },
+      { key: 'rewards', label: '扭蛋机' },
       { key: 'settings', label: '习惯管理' }
     ];
     var tabHtml = tabs.map(function (t) {
@@ -337,7 +337,7 @@
     return '<div class="habits-trend">' + bars + '</div>';
   }
 
-  // ---------- 球罐 ----------
+  // ---------- 糖罐 ----------
   function periodRange() {
     var cfg = state.jar;
     var end, start, label;
@@ -414,7 +414,7 @@
       '<div class="jar-period-btns">' + periodBtns + '</div>' +
       nav + customInputs +
       '<div class="jar-card">' +
-        '<div class="jar-title-row"><span>🍬 ' + (state.jar.period === 'week' ? '本周' : (state.jar.period === 'month' ? '本月' : (state.jar.period === 'year' ? '本年' : '自选'))) + '小球罐</span><span class="jar-points">+' + points + ' 糖</span></div>' +
+        '<div class="jar-title-row"><span>🍬 ' + (state.jar.period === 'week' ? '本周' : (state.jar.period === 'month' ? '本月' : (state.jar.period === 'year' ? '本年' : '自选'))) + '糖罐</span><span class="jar-points">+' + points + ' 糖</span></div>' +
         jarHTML +
       '</div>' +
       '<div class="habits-card"><div class="habits-card-title">习惯完成情况</div>' + listHtml + '</div>' +
@@ -608,30 +608,87 @@
       list + '</div>';
   }
 
-  // ---------- 奖励商店 ----------
+  // ---------- 扭蛋机 ----------
+  function hashCode(s) {
+    return s.split('').reduce(function (a, b) { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+  }
+  function getRewardIcon(r) {
+    if (!r) return '🎁';
+    if (/^[\uD800-\uDBFF][\uDC00-\uDFFF]$/.test(r.icon || '') || (r.icon && r.icon.length <= 2 && !HABIT_ICONS[r.icon])) return esc(r.icon || '🎁');
+    return HABIT_ICONS[r.icon] ? HABIT_ICONS[r.icon] : '🎁';
+  }
+  function renderGachaBalls(rewards) {
+    var count = 30;
+    var palette = ['#FFB5C2', '#FFF3B0', '#B5EAD7', '#C7CEEA', '#FFDAC1', '#E2D5F5', '#B5D8EB', '#FFC9C2'];
+    var balls = [];
+    for (var i = 0; i < count; i++) {
+      var r = rewards[i % Math.max(rewards.length, 1)];
+      var color = r ? palette[Math.abs(hashCode(r.id + i)) % palette.length] : '#FFE08A';
+      var x = (Math.abs(hashCode('x' + i)) % 80) + 5;
+      var y = (Math.abs(hashCode('y' + i)) % 62) + 10;
+      var rot = Math.abs(hashCode('r' + i)) % 360;
+      balls.push('<div class="gacha-ball" style="left:' + x + '%;top:' + y + '%;transform:rotate(' + rot + 'deg);background:' + color + '"></div>');
+    }
+    return balls.join('');
+  }
+  function pickGachaPrize(rewards) {
+    var total = rewards.reduce(function (s, r) { return s + (Number(r.weight) || 1); }, 0);
+    var pick = Math.random() * total;
+    var acc = 0;
+    for (var i = 0; i < rewards.length; i++) {
+      acc += (Number(rewards[i].weight) || 1);
+      if (pick <= acc) return rewards[i];
+    }
+    return rewards[rewards.length - 1];
+  }
+  function showGachaResult(prize) {
+    var icon = getRewardIcon(prize);
+    var name = prize ? prize.name : '神秘小惊喜';
+    var html = '<div class="gacha-result">' +
+      '<div class="gacha-result-badge">中奖啦</div>' +
+      '<div class="gacha-result-icon">' + icon + '</div>' +
+      '<div class="gacha-result-title">' + esc(name) + '</div>' +
+      '<div class="gacha-result-sub">恭喜获得新奖励，记得去兑现哦～</div>' +
+      '<div class="form-actions"><button class="habits-btn" id="gachaOk">收下</button></div>' +
+      '</div>';
+    App.showModal(html);
+    var ok = document.getElementById('gachaOk');
+    if (ok) ok.addEventListener('click', function () { App.closeModal(); renderSub(); });
+  }
   function renderRewards() {
     var rewards = getArr('rewardItems');
     var points = totalPoints();
-    var grid = rewards.length === 0
-      ? '<div class="habits-empty">还没有奖励，先去添加一个想兑换的小愿望吧～</div>'
-      : '<div class="habits-rewards-grid">' + rewards.map(function (r) {
-          var can = points >= (r.cost_points || 0);
-          var icon = /^[\uD800-\uDBFF][\uDC00-\uDFFF]$/.test(r.icon || '') || (r.icon && r.icon.length <= 2 && !HABIT_ICONS[r.icon]) ? esc(r.icon || '🎁') : (HABIT_ICONS[r.icon] ? HABIT_ICONS[r.icon] : '🎁');
-          return '<div class="reward-card">' +
-            '<div class="reward-icon">' + icon + '</div>' +
-            '<div class="reward-name">' + esc(r.name) + '</div>' +
-            '<div class="reward-cost">' + (r.cost_points || 0) + ' 积分</div>' +
-            '<button class="habits-btn ' + (can ? '' : 'habits-btn-disabled') + '" data-act="redeem" data-id="' + r.id + '">兑换</button>' +
-            '<button class="reward-del" data-act="reward-del" data-id="' + r.id + '">✕</button>' +
+    var cost = 50;
+    var canGacha = points >= cost && rewards.length > 0;
+    var totalWeight = rewards.reduce(function (s, r) { return s + (Number(r.weight) || 1); }, 0);
+    var poolHtml = rewards.length === 0
+      ? '<div class="gacha-pool-empty">还没有奖励，点击右上角「新增奖励」添加扭蛋奖品～</div>'
+      : '<div class="gacha-pool">' + rewards.map(function (r) {
+          var w = Number(r.weight) || 1;
+          var pct = totalWeight > 0 ? Math.round((w / totalWeight) * 100) : 0;
+          return '<div class="gacha-pool-item" data-act="reward-del" data-id="' + r.id + '" title="点击删除">' +
+            '<div class="gacha-pool-icon">' + getRewardIcon(r) + '</div>' +
+            '<div class="gacha-pool-name">' + esc(r.name) + '</div>' +
+            '<div class="gacha-pool-weight">权重 ' + w + (pct > 0 ? ' · ' + pct + '%' : '') + '</div>' +
             '</div>';
         }).join('') + '</div>';
+    var machineHtml = '<div class="gacha-machine" id="gachaMachine">' +
+      '<div class="gacha-dome">' +
+        '<div class="gacha-balls">' + renderGachaBalls(rewards) + '</div>' +
+        '<div class="gacha-glass"></div>' +
+      '</div>' +
+      '<div class="gacha-body">' +
+        '<div class="gacha-chute" id="gachaChute"></div>' +
+        '<div class="gacha-lever"><div class="gacha-knob"></div></div>' +
+      '</div>' +
+      '</div>';
     return '<div class="habits-rewards">' +
-      '<div class="rewards-head"><div class="rewards-points">💎 当前积分 <b>' + points + '</b></div>' +
-      '<div class="rewards-actions">' +
-        '<button class="habits-btn" data-act="reward-add">+ 新增奖励</button>' +
-        '<button class="habits-btn-ghost" data-act="blindbox">🎲 抽盲盒（50积分）</button>' +
-      '</div></div>' +
-      grid + '</div>';
+      '<div class="rewards-head"><div class="rewards-points">🍬 当前糖果 <b>' + points + '</b></div>' +
+      '<div class="rewards-actions"><button class="habits-btn" data-act="reward-add">+ 新增奖励</button></div></div>' +
+      '<div class="gacha-pool-title">🎁 奖池</div>' + poolHtml +
+      machineHtml +
+      '<div class="gacha-action"><button class="habits-btn gacha-spin-btn ' + (canGacha ? '' : 'habits-btn-disabled') + '" data-act="gacha">🎰 抽扭蛋（' + cost + ' 糖果）</button></div>' +
+      '</div>';
   }
 
   // ---------- 习惯管理 ----------
@@ -863,49 +920,46 @@
     var html = '<div class="reward-form">' +
       '<div class="form-group"><label>奖励名称</label><input id="rfName" class="habits-input" placeholder="如：火锅一顿"></div>' +
       '<div class="form-group"><label>图标（emoji 或留空）</label><input id="rfIcon" class="habits-input" value="🎁" maxlength="4"></div>' +
-      '<div class="form-group"><label>所需积分</label><input id="rfCost" class="habits-input" type="number" min="1" value="100"></div>' +
+      '<div class="form-group"><label>中奖概率权重（越大越容易中）</label><input id="rfWeight" class="habits-input" type="number" min="1" value="10"></div>' +
       '<div class="form-actions"><button class="habits-btn" id="rfSave">添加</button><button class="habits-btn-ghost" id="rfCancel">取消</button></div></div>';
     App.showModal(html);
     var modal = document.getElementById('modalContainer');
     modal.querySelector('#rfCancel').addEventListener('click', function () { App.closeModal(); });
     modal.querySelector('#rfSave').addEventListener('click', function () {
       var name = modal.querySelector('#rfName').value.trim();
-      var cost = parseInt(modal.querySelector('#rfCost').value) || 0;
-      if (!name || cost <= 0) { App.showToast('请填写名称和有效积分'); return; }
+      var weight = parseInt(modal.querySelector('#rfWeight').value) || 0;
+      if (!name || weight <= 0) { App.showToast('请填写名称和有效概率权重'); return; }
       var rewards = getArr('rewardItems');
-      rewards.push({ id: Store.genId(), name: name, icon: modal.querySelector('#rfIcon').value.trim() || '🎁', cost_points: cost, category: 'custom', created_at: new Date().toISOString() });
+      rewards.push({ id: Store.genId(), name: name, icon: modal.querySelector('#rfIcon').value.trim() || '🎁', cost_points: 50, weight: weight, category: 'custom', created_at: new Date().toISOString() });
       setArr('rewardItems', rewards);
       App.closeModal();
       renderSub();
     });
   }
-  function redeemReward(id) {
-    var rewards = getArr('rewardItems');
-    var r = rewards.filter(function (x) { return x.id === id; })[0];
-    if (!r) return;
-    var points = totalPoints();
-    if (points < (r.cost_points || 0)) { App.showToast('积分不足，还差 ' + ((r.cost_points || 0) - points) + ' 分'); return; }
-    var redemptions = getArr('redemptions');
-    redemptions.push({ id: Store.genId(), reward_id: r.id, points_spent: r.cost_points || 0, redeemed_at: new Date().toISOString(), status: 'pending', claimed_at: null });
-    setArr('redemptions', redemptions);
-    App.showToast('已兑换：' + r.name + ' 🎉');
-    renderSub();
-  }
-  function blindBox() {
+  function gacha() {
     var cost = 50;
     var points = totalPoints();
-    if (points < cost) { App.showToast('积分不足，抽盲盒需要 50 积分'); return; }
     var rewards = getArr('rewardItems');
-    var prize = rewards.length ? rewards[Math.floor(Math.random() * rewards.length)] : null;
-    var redemptions = getArr('redemptions');
-    redemptions.push({ id: Store.genId(), reward_id: prize ? prize.id : null, points_spent: cost, redeemed_at: new Date().toISOString(), status: 'blind', claimed_at: null });
-    setArr('redemptions', redemptions);
-    var msg = prize ? ('🎉 恭喜抽中：' + prize.name + '！') : '🎉 抽中一份神秘小惊喜！';
-    App.showToast(msg);
-    if (window.App) App.showModal('<div class="blindbox-result"><div class="blindbox-emoji">🎁</div><div>' + esc(msg) + '</div><div class="form-actions"><button class="habits-btn" id="bbOk">好耶</button></div></div>');
-    var ok = document.getElementById('bbOk');
-    if (ok) ok.addEventListener('click', function () { App.closeModal(); renderSub(); });
-    else renderSub();
+    if (points < cost) { App.showToast('糖果不足，抽扭蛋需要 ' + cost + ' 糖果'); return; }
+    if (!rewards.length) { App.showToast('请先添加奖励'); return; }
+    var machine = root.querySelector('#gachaMachine');
+    var chute = root.querySelector('#gachaChute');
+    if (machine) machine.classList.add('gacha-spinning');
+    setTimeout(function () {
+      var prize = pickGachaPrize(rewards);
+      var redemptions = getArr('redemptions');
+      redemptions.push({ id: Store.genId(), reward_id: prize ? prize.id : null, points_spent: cost, redeemed_at: new Date().toISOString(), status: 'gacha', claimed_at: null });
+      setArr('redemptions', redemptions);
+      if (machine) machine.classList.remove('gacha-spinning');
+      if (chute) {
+        chute.innerHTML = '<div class="gacha-capsule">' + getRewardIcon(prize) + '</div>';
+        chute.classList.add('gacha-capsule-drop');
+      }
+      setTimeout(function () {
+        showGachaResult(prize);
+        if (chute) { chute.innerHTML = ''; chute.classList.remove('gacha-capsule-drop'); }
+      }, 900);
+    }, 1600);
   }
 
   // ---------- 种子数据（首次进入）----------
@@ -923,9 +977,9 @@
     }
     if (getArr('rewardItems').length === 0) {
       var seedRewards = [
-        { id: Store.genId(), name: '火锅一顿', icon: '🍲', cost_points: 200, category: 'food', created_at: new Date().toISOString() },
-        { id: Store.genId(), name: '休息半天', icon: '😴', cost_points: 300, category: 'rest', created_at: new Date().toISOString() },
-        { id: Store.genId(), name: '买一本喜欢的书', icon: '📚', cost_points: 150, category: 'self_invest', created_at: new Date().toISOString() }
+        { id: Store.genId(), name: '火锅一顿', icon: '🍲', cost_points: 50, weight: 10, category: 'food', created_at: new Date().toISOString() },
+        { id: Store.genId(), name: '休息半天', icon: '😴', cost_points: 50, weight: 5, category: 'rest', created_at: new Date().toISOString() },
+        { id: Store.genId(), name: '买一本喜欢的书', icon: '📚', cost_points: 50, weight: 15, category: 'self_invest', created_at: new Date().toISOString() }
       ];
       setArr('rewardItems', seedRewards);
     }
@@ -976,9 +1030,8 @@
       if (act === 'note-del') { var dn = getArr('habitNotes').filter(function (n) { return n.id !== id; }); setArr('habitNotes', dn); renderSub(); return; }
       if (act === 'reward-add') { openRewardForm(); return; }
       if (act === 'reward-del') { var dr = getArr('rewardItems').filter(function (r) { return r.id !== id; }); setArr('rewardItems', dr); renderSub(); return; }
-      if (act === 'redeem') { redeemReward(id); return; }
-      if (act === 'blindbox') { blindBox(); return; }
-      // 球罐
+      if (act === 'gacha') { gacha(); return; }
+      // 糖罐
       if (act === 'jar-period') { state.jar.period = t.dataset.period; if (state.jar.period === 'custom') { state.jar.customStart = todayStr(); state.jar.customEnd = todayStr(); } renderSub(); return; }
       if (act === 'jar-prev') { shiftJarDate(-1); renderSub(); return; }
       if (act === 'jar-next') { shiftJarDate(1); renderSub(); return; }
@@ -987,7 +1040,24 @@
         if (s && e) { state.jar.customStart = s.value; state.jar.customEnd = e.value; }
         renderSub(); return;
       }
-      if (act === 'jar-shake') { t.classList.add('jar-shaking'); setTimeout(function () { t.classList.remove('jar-shaking'); }, 520); return; }
+      if (act === 'jar-shake') {
+        t.classList.add('jar-shaking');
+        var jcs = t.querySelectorAll('.jar-candy');
+        jcs.forEach(function (candy, idx) {
+          var delay = (Math.random() * 0.18).toFixed(3);
+          var dir = Math.random() > 0.5 ? 'normal' : 'reverse';
+          candy.style.animationDelay = delay + 's';
+          candy.style.animationDirection = dir;
+        });
+        setTimeout(function () {
+          t.classList.remove('jar-shaking');
+          jcs.forEach(function (candy) {
+            candy.style.animationDelay = '';
+            candy.style.animationDirection = '';
+          });
+        }, 620);
+        return;
+      }
       // 番茄钟按钮（initPomo 已绑定大部分，这里兜底）
       if (act === 'pomo-start') { var p = state.pomo; p.running ? pausePomo() : startPomo(); return; }
       if (act === 'pomo-reset') { resetPomo(); return; }
