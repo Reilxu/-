@@ -437,21 +437,23 @@
     var overflow = candy.length - maxShow;
     var overflowTag = overflow > 0 ? '<div class="jar-overflow">+' + overflow + '</div>' : '';
     return '<div class="jar-glass" data-act="jar-shake">' +
-      '<svg class="jar-svg" viewBox="0 0 260 180">' +
-        '<defs>' +
-          '<linearGradient id="jarGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
-            '<stop offset="0%" style="stop-color:rgba(255,255,255,0.55)"/>' +
-            '<stop offset="50%" style="stop-color:rgba(230,240,220,0.25)"/>' +
-            '<stop offset="100%" style="stop-color:rgba(200,210,190,0.35)"/>' +
-          '</linearGradient>' +
-          '<clipPath id="jarClip"><path d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z"/></clipPath>' +
-        '</defs>' +
-        '<rect x="0" y="0" width="260" height="180" fill="transparent"/>' +
-        '<path class="jar-body" d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z" fill="url(#jarGlassGrad)" stroke="rgba(180,190,170,0.5)" stroke-width="2"/>' +
-        '<rect x="30" y="6" width="200" height="8" rx="4" fill="rgba(160,170,150,0.35)"/>' +
-      '</svg>' +
-      '<div class="jar-candy-pile">' + balls.join('') + '</div>' +
-      overflowTag +
+      '<div class="jar-shake-wrap">' +
+        '<svg class="jar-svg" viewBox="0 0 260 180">' +
+          '<defs>' +
+            '<linearGradient id="jarGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+              '<stop offset="0%" style="stop-color:rgba(255,255,255,0.55)"/>' +
+              '<stop offset="50%" style="stop-color:rgba(230,240,220,0.25)"/>' +
+              '<stop offset="100%" style="stop-color:rgba(200,210,190,0.35)"/>' +
+            '</linearGradient>' +
+            '<clipPath id="jarClip"><path d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z"/></clipPath>' +
+          '</defs>' +
+          '<rect x="0" y="0" width="260" height="180" fill="transparent"/>' +
+          '<path class="jar-body" d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z" fill="url(#jarGlassGrad)" stroke="rgba(180,190,170,0.5)" stroke-width="2"/>' +
+          '<rect x="30" y="6" width="200" height="8" rx="4" fill="rgba(160,170,150,0.35)"/>' +
+        '</svg>' +
+        '<div class="jar-candy-pile">' + balls.join('') + '</div>' +
+        overflowTag +
+      '</div>' +
       '</div>';
   }
 
@@ -618,16 +620,16 @@
     return HABIT_ICONS[r.icon] ? HABIT_ICONS[r.icon] : '🎁';
   }
   function renderGachaBalls(rewards) {
-    var count = 30;
+    var count = 28;
     var palette = ['#FFB5C2', '#FFF3B0', '#B5EAD7', '#C7CEEA', '#FFDAC1', '#E2D5F5', '#B5D8EB', '#FFC9C2'];
     var balls = [];
     for (var i = 0; i < count; i++) {
       var r = rewards[i % Math.max(rewards.length, 1)];
       var color = r ? palette[Math.abs(hashCode(r.id + i)) % palette.length] : '#FFE08A';
-      var x = (Math.abs(hashCode('x' + i)) % 80) + 5;
-      var y = (Math.abs(hashCode('y' + i)) % 62) + 10;
+      var x = (Math.abs(hashCode('x' + i)) % 74) + 8;
+      var y = (Math.abs(hashCode('y' + i)) % 58) + 12;
       var rot = Math.abs(hashCode('r' + i)) % 360;
-      balls.push('<div class="gacha-ball" style="left:' + x + '%;top:' + y + '%;transform:rotate(' + rot + 'deg);background:' + color + '"></div>');
+      balls.push('<div class="gacha-ball" style="left:' + x + '%;top:' + y + '%;transform:rotate(' + rot + 'deg);--ball-color:' + color + '"></div>');
     }
     return balls.join('');
   }
@@ -672,22 +674,43 @@
             '<div class="gacha-pool-weight">权重 ' + w + (pct > 0 ? ' · ' + pct + '%' : '') + '</div>' +
             '</div>';
         }).join('') + '</div>';
+    var scallops = '<div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div>';
+    var windowPrizes = rewards.length === 0
+      ? '<div class="gacha-window-prize">🎁</div>'
+      : rewards.slice(0, 5).map(function (r) {
+          return '<div class="gacha-window-prize" title="' + esc(r.name) + '">' + getRewardIcon(r) + '</div>';
+        }).join('');
     var machineHtml = '<div class="gacha-machine" id="gachaMachine">' +
+      '<div class="gacha-ears"><div class="gacha-ear"></div><div class="gacha-ear"></div></div>' +
       '<div class="gacha-dome">' +
-        '<div class="gacha-balls">' + renderGachaBalls(rewards) + '</div>' +
-        '<div class="gacha-glass"></div>' +
+        '<div class="gacha-dome-ring"></div>' +
+        '<div class="gacha-dome-inner">' +
+          '<div class="gacha-balls">' + renderGachaBalls(rewards) + '</div>' +
+          '<div class="gacha-glass"></div>' +
+        '</div>' +
       '</div>' +
       '<div class="gacha-body">' +
-        '<div class="gacha-chute" id="gachaChute"></div>' +
-        '<div class="gacha-lever"><div class="gacha-knob"></div></div>' +
+        '<div class="gacha-awning">' + scallops + '</div>' +
+        '<div class="gacha-window">' +
+          '<div class="gacha-window-label">本期大奖</div>' +
+          '<div class="gacha-window-prizes">' + windowPrizes + '</div>' +
+        '</div>' +
+        '<div class="gacha-controls">' +
+          '<div class="gacha-chute-wrap">' +
+            '<div class="gacha-chute" id="gachaChute"></div>' +
+            '<div class="gacha-arrows">▼<br>▼<br>▼</div>' +
+          '</div>' +
+          '<div class="gacha-coin-slot"></div>' +
+          '<div class="gacha-lever"><div class="gacha-knob"></div></div>' +
+        '</div>' +
       '</div>' +
       '</div>';
     return '<div class="habits-rewards">' +
       '<div class="rewards-head"><div class="rewards-points">🍬 当前糖果 <b>' + points + '</b></div>' +
       '<div class="rewards-actions"><button class="habits-btn" data-act="reward-add">+ 新增奖励</button></div></div>' +
-      '<div class="gacha-pool-title">🎁 奖池</div>' + poolHtml +
       machineHtml +
       '<div class="gacha-action"><button class="habits-btn gacha-spin-btn ' + (canGacha ? '' : 'habits-btn-disabled') + '" data-act="gacha">🎰 抽扭蛋（' + cost + ' 糖果）</button></div>' +
+      '<div class="gacha-pool-title">🎁 奖池</div>' + poolHtml +
       '</div>';
   }
 

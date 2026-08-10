@@ -7064,18 +7064,23 @@ textarea,
   transition: transform 0.2s ease;
 }
 .jar-glass:hover { transform: translateY(-1px); }
+.jar-shake-wrap {
+  position: relative;
+  width: 100%;
+  transform-origin: 50% 100%;
+}
 .jar-svg { width: 100%; height: auto; display: block; }
 .jar-body { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.06)); }
 .jar-candy-pile {
   position: absolute;
-  left: 34px; right: 34px;
-  bottom: 16px;
+  left: 42px; right: 42px;
+  bottom: 18px;
   display: flex; flex-wrap: wrap-reverse; align-content: flex-start; justify-content: center;
   gap: 5px;
   pointer-events: none;
 }
 .jar-candy {
-  width: 20px; height: 20px;
+  width: 19px; height: 19px;
   border-radius: 50%;
   box-shadow:
     inset -3px -3px 5px rgba(0,0,0,0.15),
@@ -7085,7 +7090,7 @@ textarea,
   display: inline-flex; align-items: center; justify-content: center;
   color: rgba(30,30,30,0.75);
 }
-.jar-candy svg { width: 12px; height: 12px; }
+.jar-candy svg { width: 11px; height: 11px; }
 @keyframes jar-candy-pop {
   0% { transform: scale(0) translateY(-16px); opacity: 0; }
   70% { transform: scale(1.1) translateY(2px); opacity: 1; }
@@ -7093,41 +7098,48 @@ textarea,
 }
 .jar-overflow {
   position: absolute;
-  right: 38px; bottom: 12px;
+  right: 46px; bottom: 14px;
   font-size: var(--font-size-xs); font-weight: 700;
   color: var(--text-soft); background: rgba(255,255,255,0.7);
   padding: 2px 6px; border-radius: 999px;
   pointer-events: none;
 }
-.jar-shaking { animation: jar-shake 0.62s ease both; transform-origin: bottom center; }
-.jar-shaking .jar-candy-pile { animation: jar-candy-shake 0.62s ease both; }
-.jar-shaking .jar-candy { animation: jar-candy-rattle 0.62s ease both; }
-@keyframes jar-shake {
-  0%, 100% { transform: rotate(0deg) translateY(0); }
-  12% { transform: rotate(4deg) translateY(-2px); }
-  24% { transform: rotate(-4deg) translateY(-1px); }
-  38% { transform: rotate(3deg) translateY(-3px); }
-  52% { transform: rotate(-2.5deg) translateY(-1px); }
-  68% { transform: rotate(1.5deg) translateY(-2px); }
-  84% { transform: rotate(-0.5deg) translateY(0); }
+.jar-shaking .jar-shake-wrap { animation: jar-shake-physics 1.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.jar-shaking .jar-candy-pile { animation: jar-candy-slosh 1.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both 0.06s; }
+.jar-shaking .jar-candy { animation: jar-candy-rattle 0.95s cubic-bezier(0.25, 0.46, 0.45, 0.94) both 0.1s; }
+/* 物理摆动：幅度递减 + 轻微弹起，模拟惯性和重力 */
+@keyframes jar-shake-physics {
+  0% { transform: rotate(0deg) translateY(0); }
+  5% { transform: rotate(5.5deg) translateY(-4px); }
+  12% { transform: rotate(-5deg) translateY(-2px); }
+  21% { transform: rotate(4deg) translateY(-4px); }
+  31% { transform: rotate(-3.2deg) translateY(-2px); }
+  42% { transform: rotate(2.4deg) translateY(-3px); }
+  53% { transform: rotate(-1.8deg) translateY(-1px); }
+  64% { transform: rotate(1.2deg) translateY(-2px); }
+  75% { transform: rotate(-0.7deg) translateY(-1px); }
+  86% { transform: rotate(0.3deg) translateY(0); }
+  100% { transform: rotate(0deg) translateY(0); }
 }
-@keyframes jar-candy-shake {
+@keyframes jar-candy-slosh {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  15% { transform: translate(6px, -8px) rotate(6deg); }
-  30% { transform: translate(-7px, -4px) rotate(-7deg); }
-  45% { transform: translate(5px, -10px) rotate(5deg); }
-  60% { transform: translate(-5px, -3px) rotate(-4deg); }
-  75% { transform: translate(3px, -6px) rotate(2deg); }
-  90% { transform: translate(-1px, -1px) rotate(-1deg); }
+  8% { transform: translate(4px, -6px) rotate(2.5deg); }
+  18% { transform: translate(-5px, -3px) rotate(-3deg); }
+  29% { transform: translate(3px, -7px) rotate(2deg); }
+  40% { transform: translate(-4px, -2px) rotate(-2.2deg); }
+  52% { transform: translate(2px, -4px) rotate(1.4deg); }
+  64% { transform: translate(-2px, -2px) rotate(-1deg); }
+  77% { transform: translate(1px, -2px) rotate(0.6deg); }
+  90% { transform: translate(-1px, -1px) rotate(-0.3deg); }
 }
 @keyframes jar-candy-rattle {
   0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  14% { transform: translate(2px, -5px) rotate(10deg) scale(1.05); }
-  28% { transform: translate(-3px, -2px) rotate(-12deg) scale(1.02); }
-  42% { transform: translate(3px, -6px) rotate(8deg) scale(1.04); }
-  56% { transform: translate(-2px, -2px) rotate(-6deg) scale(1.01); }
-  70% { transform: translate(2px, -4px) rotate(4deg) scale(1.03); }
-  84% { transform: translate(-1px, -1px) rotate(-2deg) scale(1); }
+  12% { transform: translate(2px, -4px) rotate(8deg) scale(1.04); }
+  25% { transform: translate(-3px, -2px) rotate(-9deg) scale(1.02); }
+  38% { transform: translate(3px, -5px) rotate(6deg) scale(1.04); }
+  51% { transform: translate(-2px, -2px) rotate(-5deg) scale(1.01); }
+  64% { transform: translate(2px, -3px) rotate(3deg) scale(1.03); }
+  78% { transform: translate(-1px, -1px) rotate(-2deg) scale(1); }
 }
 .jar-habit-list { display: flex; flex-direction: column; gap: 10px; }
 .jar-habit-row {
@@ -7191,72 +7203,145 @@ textarea,
 
 .gacha-machine {
   position: relative;
-  width: 100%; max-width: 340px; margin: 18px auto 0;
+  width: 100%; max-width: 340px; margin: 22px auto 0;
   user-select: none;
 }
+.gacha-ears {
+  position: relative; width: 70%; height: 28px; margin: 0 auto;
+  display: flex; justify-content: space-between;
+}
+.gacha-ear {
+  width: 38px; height: 32px;
+  background: linear-gradient(180deg, #FFF4D6, #FCE8C0);
+  border: 2px solid rgba(180,160,120,0.35);
+  border-bottom: none;
+  border-radius: 50% 50% 0 0;
+  transform: translateY(6px);
+}
 .gacha-dome {
-  position: relative;
-  width: 80%; height: 180px; margin: 0 auto;
-  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(235,244,220,0.48));
-  border: 3px solid rgba(180,190,170,0.55);
-  border-radius: 50% 50% 22px 22px / 45% 45% 22px 22px;
+  position: relative; z-index: 2;
+  width: 80%; height: 172px; margin: -6px auto 0;
+}
+.gacha-dome-ring {
+  position: absolute; inset: -6px -8px;
+  background: linear-gradient(180deg, #FFF4D6, #F5E6C8);
+  border: 2px solid rgba(180,160,120,0.35);
+  border-radius: 50% 50% 24px 24px / 48% 48% 24px 24px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+.gacha-dome-inner {
+  position: relative; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(240,248,230,0.42));
+  border: 2px solid rgba(180,190,170,0.45);
+  border-radius: 50% 50% 22px 22px / 48% 48% 22px 22px;
   overflow: hidden;
-  box-shadow: inset 0 -6px 16px rgba(0,0,0,0.05), 0 6px 18px rgba(0,0,0,0.08);
+  box-shadow: inset 0 -5px 14px rgba(0,0,0,0.05);
 }
 .gacha-glass {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.28) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 35%, transparent 65%, rgba(255,255,255,0.3) 100%);
   pointer-events: none;
 }
 .gacha-balls { position: absolute; inset: 0; }
 .gacha-ball {
   position: absolute;
-  width: 34px; height: 34px; border-radius: 50%;
-  box-shadow: inset -4px -4px 6px rgba(0,0,0,0.12), inset 3px 3px 5px rgba(255,255,255,0.55), 0 2px 4px rgba(0,0,0,0.08);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(180deg, #FFF8E1 48%, var(--ball-color, #FFE08A) 52%);
+  border: 1px solid rgba(160,140,100,0.15);
+  box-shadow: inset -3px -3px 5px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.08);
 }
 .gacha-ball::after {
   content: '';
-  position: absolute; top: 6px; left: 8px;
-  width: 10px; height: 6px; border-radius: 50%;
-  background: rgba(255,255,255,0.55); transform: rotate(-25deg);
+  position: absolute; top: 48%; left: 10%; right: 10%;
+  height: 3px; background: rgba(255,255,255,0.75); border-radius: 999px;
+  transform: translateY(-50%);
 }
 .gacha-body {
-  position: relative;
-  width: 90%; height: 110px; margin: -12px auto 0;
-  background: linear-gradient(180deg, #FDFDF9, #F1F4E8);
-  border: 3px solid rgba(180,190,170,0.55);
-  border-radius: 18px 18px 28px 28px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px;
+  position: relative; z-index: 1;
+  width: 92%; margin: -14px auto 0;
+  background: linear-gradient(180deg, #FFF8E1, #F5E6C8);
+  border: 2px solid rgba(180,160,120,0.35);
+  border-radius: 18px 18px 26px 26px;
+  padding: 16px 14px 14px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
+.gacha-awning {
+  position: absolute; top: -12px; left: 10px; right: 10px;
+  display: flex; justify-content: center;
+  pointer-events: none;
+}
+.gacha-scallop {
+  width: 22px; height: 18px;
+  background: #FFC4D1;
+  border: 1px solid rgba(200,130,140,0.25);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  margin: 0 1px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.gacha-window {
+  background: rgba(255,255,255,0.55);
+  border: 2px solid rgba(180,160,120,0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.gacha-window-label { font-size: var(--font-size-xs); color: var(--text-soft); font-weight: 600; margin-bottom: 6px; }
+.gacha-window-prizes { display: flex; justify-content: center; gap: 8px; }
+.gacha-window-prize {
+  width: 34px; height: 34px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; box-shadow: var(--shadow-sm);
+}
+.gacha-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.gacha-chute-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
 .gacha-chute {
-  width: 74px; height: 74px;
-  background: rgba(230,235,220,0.7);
-  border: 2px dashed rgba(160,170,150,0.4);
+  width: 68px; height: 68px;
+  background: rgba(255,255,255,0.55);
+  border: 2px dashed rgba(160,150,130,0.35);
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
+.gacha-arrows {
+  font-size: 10px; line-height: 1.1; color: rgba(160,150,130,0.6);
+  text-align: center;
+}
+.gacha-coin-slot {
+  width: 10px; height: 34px;
+  background: linear-gradient(180deg, #FFE4B5, #FFD699);
+  border: 1px solid rgba(180,150,100,0.35);
+  border-radius: 999px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
 .gacha-lever {
   position: relative;
-  width: 54px; height: 54px;
+  width: 56px; height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FFE08A, #FFD66B);
+  background: conic-gradient(#FFE08A 0deg, #FFD66B 120deg, #FFE08A 240deg);
   border: 3px solid rgba(160,140,80,0.35);
   box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   display: flex; align-items: center; justify-content: center;
   transform-origin: center center;
 }
 .gacha-knob {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; opacity: 0.7;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; opacity: 0.85;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* 扭蛋动画 */
-.gacha-spinning .gacha-dome { animation: gacha-dome-shake 0.18s linear 8; }
+.gacha-spinning .gacha-dome-inner { animation: gacha-dome-shake 0.18s linear 8; }
 .gacha-spinning .gacha-balls { animation: gacha-balls-rattle 0.18s linear 8; }
 .gacha-spinning .gacha-lever { animation: gacha-lever-turn 1.6s ease both; }
+.gacha-spinning .gacha-machine { animation: gacha-machine-bounce 1.6s ease both; }
 @keyframes gacha-dome-shake {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(2px); }
@@ -7271,8 +7356,16 @@ textarea,
   60% { transform: rotate(-55deg); }
   100% { transform: rotate(0deg); }
 }
+@keyframes gacha-machine-bounce {
+  0%, 100% { transform: translateY(0); }
+  10% { transform: translateY(1px); }
+  25% { transform: translateY(-2px); }
+  40% { transform: translateY(1px); }
+  55% { transform: translateY(-1px); }
+  70% { transform: translateY(0); }
+}
 .gacha-capsule {
-  width: 50px; height: 50px;
+  width: 48px; height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, #C2F84F, #A5D63F);
   display: flex; align-items: center; justify-content: center;
@@ -7288,7 +7381,7 @@ textarea,
   100% { transform: translateY(0) scale(1); }
 }
 
-.gacha-action { display: flex; justify-content: center; margin-top: 6px; }
+.gacha-action { display: flex; justify-content: center; margin-top: 14px; }
 .gacha-spin-btn { padding: 12px 28px; font-size: var(--font-size-base); }
 
 /* 中奖弹窗 */
@@ -7423,15 +7516,17 @@ textarea,
   .icon-grid { grid-template-columns: repeat(6, 1fr); }
   .jar-glass { max-width: 320px; }
   .jar-candy { width: 16px; height: 16px; }
-  .jar-candy-pile { left: 26px; right: 26px; bottom: 12px; gap: 4px; }
+  .jar-candy-pile { left: 32px; right: 32px; bottom: 12px; gap: 4px; }
   .reward-chip-row { gap: 6px; }
   .reward-chip { padding: 6px 8px; min-width: 30px; }
   .gacha-machine { max-width: 300px; }
-  .gacha-dome { height: 160px; }
-  .gacha-ball { width: 28px; height: 28px; }
-  .gacha-body { height: 96px; padding: 10px 14px; }
-  .gacha-chute { width: 62px; height: 62px; }
+  .gacha-dome { height: 150px; }
+  .gacha-ball { width: 26px; height: 26px; }
+  .gacha-body { padding: 12px 10px; }
+  .gacha-chute { width: 58px; height: 58px; }
   .gacha-lever { width: 46px; height: 46px; }
+  .gacha-window-prize { width: 28px; height: 28px; font-size: 15px; }
+  .gacha-scallop { width: 18px; height: 14px; }
   .gacha-pool-icon { font-size: 24px; }
   .gacha-pool-icon svg { width: 24px; height: 24px; }
   .gacha-spin-btn { padding: 11px 22px; }
