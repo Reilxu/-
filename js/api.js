@@ -64,6 +64,12 @@ const API = (() => {
       chatTemp: 0.7,
       creativeTemp: 0.9,
     },
+
+    // 今日运势
+    fortune: {
+      cacheKey: "xl_daily_fortune_cache",
+      cacheTTL: 6 * 60 * 60 * 1000, // 6 小时（同一天内复用）
+    },
   };
 
   // =============================================================================
@@ -2074,6 +2080,105 @@ ${desc || "（无）"}
   // =============================================================================
 
   /**
+   * 生成今日运势（基于用户生日与星座）
+   *
+   * @param {{birthDate:string, zodiac:string}} profile
+   * @param {boolean} [force=false] - 强制刷新
+   * @returns {Promise<{score:number, stars:number, luckyColor:string, luckyFood:string, advice:string, avoid:string, quote:string, source:string}>}
+   */
+  async function generateDailyFortune(profile, force = false) {
+    const { birthDate, zodiac } = profile || {};
+    const today = new Date().toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).replace(/\//g, "-");
+    const cacheKey = `${CONFIG.fortune.cacheKey}_${today}`;
+
+    if (!force) {
+      const cached = getCache(cacheKey, CONFIG.fortune.cacheTTL);
+      if (cached && cached.score != null) {
+        return { ...cached, source: "cache" };
+      }
+    }
+
+    const settings = getDeepseekSettings();
+    if (!settings.apiKey) {
+      return makeError("NO_API_KEY", null, "请先在设置中配置 Deepseek API Key 以生成运势");
+    }
+
+    const systemPrompt = `你是一位温和的星座运势分析师，每天为用户生成一份轻松正向、适合内容创作者每日开工参考的运势。
+
+用户档案：
+- 生日：${birthDate || "未提供"}
+- 星座：${zodiac || "未提供"}
+- 日期：${today}
+
+请严格按以下 JSON 格式输出（不要 markdown 代码块）：
+{
+  "score": 82,
+  "stars": 4,
+  "luckyColor": "薄荷绿",
+  "luckyColorHex": "#A0E8AF",
+  "luckyFood": "牛油果吐司",
+  "advice": "今天适合把大目标拆成小任务，逐个击破",
+  "avoid": "避免在情绪上头时回复争议评论",
+  "quote": "向着月亮出发，即使不能到达，也能站在群星之中。"
+}
+
+要求：
+- score：0-100 的整数，体现今日整体运势高低；
+- stars：1-5 的整数，根据 score 四舍五入（score>=90 给 5 星，>=70 给 4 星，>=50 给 3 星，>=30 给 2 星，否则 1 星）；
+- luckyColor：一个具体的颜色名称，同时给出相近的 luckyColorHex；
+- luckyFood：一个具体食物；
+- advice：一条针对 AI 自媒体内容创作者的当日行动建议，20 字内；
+- avoid：一条当日需要避开的行为或事项，20 字内；
+- quote：一句温暖励志的短句，30 字内。`;
+
+    const result = await aiChat(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `请为我生成 ${today} 的今日运势。` },
+      ],
+      { temperature: 0.85 },
+    );
+
+    if (result.error) return result;
+
+    try {
+      let text = (result.content || "").trim();
+      const md = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (md) text = md[1].trim();
+      const objMatch = text.match(/\{[\s\S]*\}/);
+      if (objMatch) text = objMatch[0];
+
+      const parsed = JSON.parse(text);
+      const fortune = {
+        score: Math.min(100, Math.max(0, Math.round(Number(parsed.score) || 75))),
+        stars: Math.min(5, Math.max(1, Math.round(Number(parsed.stars) || 4))),
+        luckyColor: String(parsed.luckyColor || "幸运色"),
+        luckyColorHex: String(parsed.luckyColorHex || "#C2F84F"),
+        luckyFood: String(parsed.luckyFood || "美食"),
+        advice: String(parsed.advice || "保持好心情"),
+        avoid: String(parsed.avoid || "避免熬夜"),
+        quote: String(parsed.quote || "今天也是充满希望的一天。"),
+        date: today,
+      };
+
+      // 如果没有 stars，根据 score 补算
+      if (!fortune.stars) {
+        const s = fortune.score;
+        fortune.stars = s >= 90 ? 5 : s >= 70 ? 4 : s >= 50 ? 3 : s >= 30 ? 2 : 1;
+      }
+
+      setCache(cacheKey, fortune);
+      return { ...fortune, source: "live" };
+    } catch {
+      return makeError("PARSE_ERROR", null, "运势生成结果解析失败，请重试");
+    }
+  }
+
+  /**
    * 测试 Deepseek API 连接
    *
    * @param {string} apiKey - API Key
@@ -2201,6 +2306,9 @@ ${desc || "（无）"}
     // 数据看板
     generateWeeklyReport,
     analyzeVideoDecomp,
+
+    // 今日运势
+    generateDailyFortune,
 
     // 设置管理
     getDeepseekSettings,

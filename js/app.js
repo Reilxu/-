@@ -508,16 +508,20 @@ const App = {
             <div class="greeting-date">${this.renderGreetingDate()}</div>
           </div>
 
-          <div class="today-alerts-panel">
-            <div class="panel-header">
-              <div class="panel-title">提醒 & 动态</div>
-              <div class="panel-actions">
-                ${unreadAlerts.length === 0 && alerts.length > 0 ? `<button class="panel-icon-btn" id="clearReadAlertsBtn" title="清空已读">${Icons.trash}</button>` : ''}
-                <span class="panel-count">${unreadAlerts.length > 0 ? unreadAlerts.length + ' 条' : '正常'}</span>
+          <div class="hero-side-stack">
+            ${this.renderFortunePanel()}
+
+            <div class="today-alerts-panel">
+              <div class="panel-header">
+                <div class="panel-title">提醒 & 动态</div>
+                <div class="panel-actions">
+                  ${unreadAlerts.length === 0 && alerts.length > 0 ? `<button class="panel-icon-btn" id="clearReadAlertsBtn" title="清空已读">${Icons.trash}</button>` : ''}
+                  <span class="panel-count">${unreadAlerts.length > 0 ? unreadAlerts.length + ' 条' : '正常'}</span>
+                </div>
               </div>
-            </div>
-            <div class="alert-list">
-              ${this.renderTodayAlerts(alerts)}
+              <div class="alert-list">
+                ${this.renderTodayAlerts(alerts)}
+              </div>
             </div>
           </div>
         </div>
@@ -645,6 +649,149 @@ const App = {
         </div>
       </div>
     `).join('');
+  },
+
+  renderFortunePanel() {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `
+      <div class="today-fortune-panel" id="todayFortunePanel">
+        <div class="fortune-rings">
+          <span class="fortune-ring"></span>
+          <span class="fortune-ring"></span>
+          <span class="fortune-ring"></span>
+        </div>
+        <div class="fortune-header">
+          <div class="fortune-date">
+            <span class="fortune-date-day">${day}</span>
+            <span class="fortune-date-sep">/</span>
+            <span class="fortune-date-month">${month}</span>
+          </div>
+          <div class="fortune-title-wrap">
+            <div class="fortune-label">我的今日运势</div>
+            <div class="fortune-score-row">
+              <span class="fortune-score" id="fortuneScore">--</span>
+              <div class="fortune-stars" id="fortuneStars">${this.renderFortuneStars(0)}</div>
+            </div>
+          </div>
+        </div>
+        <div class="fortune-body">
+          <div class="fortune-loading" id="fortuneLoading">正在请 Deepseek 测算今日运势…</div>
+          <div class="fortune-content" id="fortuneContent" style="display:none;">
+            <div class="fortune-row">
+              <div class="fortune-chip">
+                <span class="fortune-chip-icon" style="background:${this.esc('#E8E8E8')}" id="fortuneColorDot"></span>
+                <span class="fortune-chip-label">幸运色</span>
+                <span class="fortune-chip-value" id="fortuneColor">--</span>
+              </div>
+              <div class="fortune-chip">
+                <span class="fortune-chip-icon" style="background:#FFF3D0">🍱</span>
+                <span class="fortune-chip-label">幸运食物</span>
+                <span class="fortune-chip-value" id="fortuneFood">--</span>
+              </div>
+            </div>
+            <div class="fortune-tips">
+              <div class="fortune-tip">
+                <span class="fortune-tip-icon fortune-tip-do">✓</span>
+                <div class="fortune-tip-text">
+                  <span class="fortune-tip-label">今日建议</span>
+                  <span class="fortune-tip-value" id="fortuneAdvice">--</span>
+                </div>
+              </div>
+              <div class="fortune-tip">
+                <span class="fortune-tip-icon fortune-tip-dont">✕</span>
+                <div class="fortune-tip-text">
+                  <span class="fortune-tip-label">避免</span>
+                  <span class="fortune-tip-value" id="fortuneAvoid">--</span>
+                </div>
+              </div>
+            </div>
+            <div class="fortune-quote" id="fortuneQuote"></div>
+          </div>
+          <div class="fortune-error" id="fortuneError" style="display:none;">
+            <span class="fortune-error-text" id="fortuneErrorText">运势加载失败</span>
+            <button class="fortune-refresh-btn" id="fortuneRefreshBtn">重新生成</button>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderFortuneStars(count) {
+    const filled = '<span class="fortune-star filled">★</span>';
+    const empty = '<span class="fortune-star">★</span>';
+    return filled.repeat(Math.max(0, Math.min(5, count))) + empty.repeat(Math.max(0, 5 - count));
+  },
+
+  async loadFortune() {
+    const panel = document.getElementById('todayFortunePanel');
+    if (!panel) return;
+
+    const loadingEl = document.getElementById('fortuneLoading');
+    const contentEl = document.getElementById('fortuneContent');
+    const errorEl = document.getElementById('fortuneError');
+    const refreshBtn = document.getElementById('fortuneRefreshBtn');
+
+    const showError = (msg) => {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (contentEl) contentEl.style.display = 'none';
+      if (errorEl) errorEl.style.display = 'flex';
+      const errText = document.getElementById('fortuneErrorText');
+      if (errText) errText.textContent = msg || '运势加载失败';
+    };
+
+    const showContent = (data) => {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (errorEl) errorEl.style.display = 'none';
+      if (contentEl) contentEl.style.display = 'block';
+
+      const scoreEl = document.getElementById('fortuneScore');
+      const starsEl = document.getElementById('fortuneStars');
+      const colorEl = document.getElementById('fortuneColor');
+      const colorDotEl = document.getElementById('fortuneColorDot');
+      const foodEl = document.getElementById('fortuneFood');
+      const adviceEl = document.getElementById('fortuneAdvice');
+      const avoidEl = document.getElementById('fortuneAvoid');
+      const quoteEl = document.getElementById('fortuneQuote');
+
+      if (scoreEl) scoreEl.textContent = data.score ?? '--';
+      if (starsEl) starsEl.innerHTML = this.renderFortuneStars(data.stars || 0);
+      if (colorEl) colorEl.textContent = data.luckyColor || '--';
+      if (colorDotEl) colorDotEl.style.background = data.luckyColorHex || '#C2F84F';
+      if (foodEl) foodEl.textContent = data.luckyFood || '--';
+      if (adviceEl) adviceEl.textContent = data.advice || '--';
+      if (avoidEl) avoidEl.textContent = data.avoid || '--';
+      if (quoteEl) quoteEl.textContent = data.quote || '';
+    };
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (contentEl) contentEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'none';
+        this._fetchFortune(true).then(showContent).catch((e) => showError(e?.message || '运势生成失败'));
+      });
+    }
+
+    try {
+      const data = await this._fetchFortune(false);
+      if (data.error) {
+        showError(data.message || '运势生成失败');
+        return;
+      }
+      showContent(data);
+    } catch (e) {
+      showError(e?.message || '运势加载失败');
+    }
+  },
+
+  async _fetchFortune(force = false) {
+    const profile = { birthDate: '1992-12-04', zodiac: '射手座' };
+    if (typeof API !== 'undefined' && API.generateDailyFortune) {
+      return await API.generateDailyFortune(profile, force);
+    }
+    return { error: 'NO_API', message: '运势接口未就绪' };
   },
 
   getYesterdayVideoStats() {
@@ -775,6 +922,9 @@ const App = {
   },
 
   bindTodayEvents() {
+    // 加载今日运势（异步，不阻塞渲染）
+    this.loadFortune();
+
     document.querySelectorAll('.quick-action-card[data-jump]').forEach(el => {
       el.addEventListener('click', () => this.navigate(el.dataset.jump));
     });
