@@ -249,6 +249,16 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.35',
+      content: `v3.3.35更新。
+- 全站视觉换肤为 Neo-brutalism（新粗野主义）：奶油底 #FFFDF5 + 底板波点纹理、纯黑描边与硬阴影（4/8/12px 无模糊）、一律直角（头像/徽章/玻璃罐/扭蛋球等圆形保留）
+- 主色热红 #FF6B6B、辅色明黄 #FFD93D、柔和紫 #C4B5FD；字体 Space Grotesk（中文回退 Noto Sans SC）700/900
+- 按钮直角+全大写+机械按压，输入框聚焦变黄，导航图标加彩色底座，欢迎 banner 红阴影、运势卡紫阴影+顶部拼色条纹
+- 仅通过新增 css/neo-brutalism.css 覆盖实现，JS 与原 style.css 零改动；删除该 link 即可回退到 v3.3.34`,
+      impact: '整站视觉切换为新粗野主义，功能逻辑零改动，可随时一键回退',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.34',
       content: `v3.3.34更新。
 - 纠正 v3.3.33 中"模块之间不留白"的误读：恢复各模块之间协调美观的留白

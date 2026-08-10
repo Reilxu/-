@@ -1,0 +1,223 @@
+/* ==========================================================================
+   NEO-BRUTALISM THEME OVERRIDE  ·  新粗野主义换肤
+   --------------------------------------------------------------------------
+   加载顺序：在 style.css 之后加载，仅覆盖视觉样式，不改任何 JS / 功能 / 数据。
+   回退方法：删除 index.html 中的
+     <link rel="stylesheet" href="css/neo-brutalism.css?v=...">
+   这一行，或 `git checkout v3.3.34 -- index.html`，即可完整回到 v3.3.34。
+   ========================================================================== */
+
+/* ---------- 1. 设计令牌（变量覆盖，驱动全站 var() 引用） ---------- */
+:root{
+  --bg:#FFFDF5;                 /* 奶油底 */
+  --bg-card:#FFFFFF;
+  --bg-muted:#FFF3D6;           /* 淡黄（替代灰） */
+  --text:#000000;
+  --text-soft:rgba(0,0,0,.66);  /* 黑透明度，非灰色 hex */
+  --text-mute:rgba(0,0,0,.46);
+  --border:#000000;             /* 黑边 */
+  --accent:#FF6B6B;             /* 主色 热红 */
+  --accent-hover:#FF6B6B;
+  --accent-yellow:#FFD93D;      /* 明黄 */
+  --accent-purple:#C4B5FD;      /* 淡紫 */
+  --accent-pink:#FFB1D8;
+  --accent-blue:#AFC9EA;
+  --accent-green:#B8CB9A;
+  --danger:#FF6B6B;
+  --shadow-sm:4px 4px 0 0 #000;   /* 硬阴影：小 */
+  --shadow-md:8px 8px 0 0 #000;   /* 中 */
+  --shadow-lg:12px 12px 0 0 #000; /* 大 */
+  --radius-sm:0px;                /* 一律直角 */
+  --radius-md:0px;
+  --radius-lg:0px;
+  --radius-xl:0px;
+  --neo-font:'Space Grotesk','Noto Sans SC',system-ui,-apple-system,sans-serif;
+}
+
+/* ---------- 2. 基底：字体 + 奶油底 + 底板波点 ---------- */
+html,body{overflow-x:hidden}
+body{
+  font-family:var(--neo-font);
+  background-color:var(--bg);
+  color:var(--text);
+  font-weight:700;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(0,0,0,.16) 2px, transparent 2px);
+  background-size:20px 20px;
+}
+.app,.main-content,.page-container,.bottom-nav,.floating-toolbar,
+.search-overlay,.help-overlay,.modal-overlay,.fab-overlay,.toast,
+.ai-fab-button,.ai-fab-overlay{position:relative;z-index:1}
+::selection{background:var(--accent-yellow);color:#000}
+*:focus-visible{outline:3px solid var(--accent) !important;outline-offset:2px}
+
+/* 标题更黑更大写 */
+h1,h2,h3,.card-title,.panel-title,.topbar-title,.modal-title{font-weight:900;letter-spacing:-.01em}
+
+/* ---------- 3. 容器卡片：白底 + 4px 黑边 + 硬阴影 + 直角 ---------- */
+.sidebar,.topbar,.modal,.help-panel,.search-panel,.fab-panel,.fab-sheet,.ai-fab-panel,.mobile-auth-sheet,
+.card,.quick-action-card,.stat-card,.calendar-card,.ai-summary-card,.competitor-card,.trend-card,.today-panel,
+.alert-card,.news-card,.content-card,.decomp-card,.hot-card,.topic-suggestion-card,.kanban-card,.summary-card,
+.dash-panel,.chart-card,.compare-chart-card,.highlight-card,.kpi-card,.inspiration-card,.decomp-upload-card,
+.habit-card,.habits-card,.jar-card,.script-card,.today-alerts-panel,.today-fortune-panel,.help-center-card,
+.chat-container,.note-item,.tag-input,.decomp-upload-card{
+  background:#fff;
+  border:4px solid #000 !important;
+  border-radius:0 !important;
+  box-shadow:var(--shadow-md) !important;
+}
+/* 卡片 hover 抬起 */
+.card:hover,.stat-card:hover,.content-card:hover,.news-card:hover,.hot-card:hover,
+.habit-card:hover,.trend-card:hover,.inspiration-card:hover,.competitor-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-lg) !important;
+}
+
+/* ---------- 4. 列表项：3px 黑边 + 小硬阴影 ---------- */
+.todo-item,.alert-item,.real-hot-item,.competitor-latest-item,.competitor-real-item,.hot-topic-item,
+.content-item,.history-item,.inbox-item,.more-item,.search-result-item,.fab-sheet-item,.report-item,
+.report-action-item,.report-history-item,.user-inspiration-item,.gacha-pool-item{
+  border:3px solid #000 !important;
+  border-radius:0 !important;
+  box-shadow:var(--shadow-sm) !important;
+}
+
+/* ---------- 5. 按钮：直角 + 黑边 + 硬阴影 + 全大写 ---------- */
+.btn,.panel-add-btn,.panel-icon-btn,.icon-btn,.topbar-add-btn,.topbar-back,.ghost-btn,
+.ft-btn,.todo-action-btn,.fab-close,.search-close,.modal-close{
+  border:3px solid #000 !important;
+  border-radius:0 !important;
+  box-shadow:var(--shadow-sm) !important;
+  background:#fff;
+  color:#000 !important;
+  font-weight:900 !important;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  transition:transform .1s linear,box-shadow .1s linear,background .1s linear !important;
+}
+.btn:hover,.panel-add-btn:hover,.panel-icon-btn:hover,.icon-btn:hover,.topbar-add-btn:hover,
+.topbar-back:hover,.ghost-btn:hover,.ft-btn:hover,.todo-action-btn:hover{
+  transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 #000 !important;
+}
+.btn:active,.panel-add-btn:active,.panel-icon-btn:active,.icon-btn:active,.topbar-add-btn:active,
+.topbar-back:active,.ghost-btn:active,.ft-btn:active,.todo-action-btn:active{
+  transform:translate(2px,2px);box-shadow:none !important;
+}
+.btn-primary,.topbar-add-btn,.panel-add-btn{background:var(--accent) !important;color:#000 !important;border-color:#000 !important}
+.btn-secondary,.btn-ghost{background:#fff !important;color:#000 !important}
+.btn-danger{background:var(--danger) !important;color:#fff !important}
+.btn:disabled{opacity:.5;box-shadow:none !important}
+
+/* ---------- 6. 表单输入：白底 + 黑边 + 聚焦变黄 ---------- */
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],
+input[type=time],input[type=search],input:not([type]),textarea,select{
+  background:#fff;border:3px solid #000;border-radius:0;color:#000;font-weight:700;
+}
+.form-input,.form-select,.form-textarea,.tag-input input{box-shadow:var(--shadow-sm)}
+.form-input:focus,.form-select:focus,.form-textarea:focus,.tag-input input:focus,
+input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
+  background:var(--accent-yellow) !important;
+  border-color:#000 !important;
+  box-shadow:6px 6px 0 0 #000 !important;
+  outline:none !important;
+}
+/* 顶栏/搜索：边框在容器上，内部输入不描边 */
+.topbar-search,.search-header{
+  background:#fff !important;border:3px solid #000 !important;border-radius:0 !important;
+  box-shadow:var(--shadow-sm) !important;
+}
+.topbar-search:focus-within,.search-header:focus-within{
+  background:var(--accent-yellow) !important;box-shadow:6px 6px 0 0 #000 !important;
+}
+.topbar-search input,.search-header input,#searchInput{
+  background:transparent !important;border:none !important;box-shadow:none !important;
+}
+
+/* ---------- 7. 侧边栏导航：白底黑边 + 彩色图标底座 ---------- */
+.nav-item{
+  background:#fff;border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm);
+  color:#000 !important;font-weight:900;text-transform:uppercase;letter-spacing:.03em;
+  margin-bottom:4px;transition:transform .1s linear,box-shadow .1s linear,background .1s linear;
+}
+.nav-item:hover{background:#fff;color:#000;transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 #000}
+.nav-item.active{background:var(--accent);color:#000 !important;transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 #000}
+.nav-item .nav-icon{
+  width:34px;height:34px;border:3px solid #000;border-radius:0;box-shadow:2px 2px 0 0 #000;
+  background:var(--accent-yellow);
+}
+.sidebar-nav .nav-item:nth-child(even) .nav-icon{background:var(--accent-purple)}
+.nav-item .nav-badge{border:2px solid #000;border-radius:0;background:var(--accent-pink);color:#000}
+.nav-section-label{color:rgba(0,0,0,.5)}
+.sidebar-profile{background:var(--accent-yellow);border:3px solid #000 !important;box-shadow:var(--shadow-sm) !important;border-radius:0 !important}
+.help-center-card{background:var(--accent-purple)}
+
+/* ---------- 8. 首页 Hero：欢迎 banner + 提醒 + 运势 + 统计卡 ---------- */
+.hero-greeting{
+  background:var(--accent-yellow) !important;
+  border:4px solid #000 !important;border-radius:0 !important;
+  box-shadow:12px 12px 0 0 #FF6B6B !important;
+}
+.greeting-text{font-weight:900;text-transform:uppercase;letter-spacing:-.02em;line-height:1.34}
+.greeting-text .accent{
+  background:var(--accent);padding:0 6px;border:3px solid #000;display:inline-block;
+  margin:0 4px;vertical-align:middle;box-shadow:none;
+}
+.greeting-sub{color:rgba(0,0,0,.66)}
+.today-alerts-panel{box-shadow:var(--shadow-md) !important}
+.today-fortune-panel{
+  position:relative;overflow:hidden;
+  border:4px solid #000 !important;border-radius:0 !important;
+  box-shadow:12px 12px 0 0 #C4B5FD !important;
+}
+.today-fortune-panel::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:10px;
+  background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px);
+  border-bottom:3px solid #000;
+}
+.fortune-header{margin-top:8px}
+.fortune-chip,.fortune-tip{background:#fff;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
+.fortune-quote{background:var(--accent-purple);border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm)}
+.fortune-refresh-btn{background:var(--accent-yellow) !important;border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm);font-weight:900;text-transform:uppercase}
+.fortune-refresh-btn:active{transform:translate(2px,2px);box-shadow:none}
+.stat-card{border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-md) !important;transition:transform .12s linear,box-shadow .12s linear}
+.today-stats .stat-card:nth-child(1){background:var(--accent-yellow)}
+.today-stats .stat-card:nth-child(2){background:var(--accent-purple)}
+.today-stats .stat-card:nth-child(3){background:var(--accent)}
+.today-stats .stat-card:nth-child(4){background:#fff}
+
+/* ---------- 9. 徽章 / 标签 ---------- */
+.badge{border:2px solid #000;border-radius:0;font-weight:900;text-transform:uppercase;box-shadow:2px 2px 0 0 #000}
+.tag{border:2px solid #000;border-radius:0;background:#fff;color:#000;font-weight:900;box-shadow:2px 2px 0 0 #000}
+.badge-muted{background:#fff;color:#000}
+
+/* ---------- 10. 弹窗 / 浮层 / Toast ---------- */
+.modal{border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-lg) !important}
+.modal-header{border-bottom:4px solid #000 !important}
+.modal-footer{border-top:4px solid #000 !important}
+.modal-header .modal-title{font-weight:900;text-transform:uppercase}
+.modal-header .modal-close{border:3px solid #000;border-radius:0;background:#fff;box-shadow:var(--shadow-sm)}
+.search-panel,.help-panel,.fab-panel,.ai-fab-panel{border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-lg) !important}
+.toast{background:#000 !important;color:#fff !important;border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-md) !important;font-weight:900;text-transform:uppercase}
+
+/* ---------- 11. 底部导航 / 浮动工具栏 ---------- */
+.bottom-nav{background:#fff;border-top:4px solid #000 !important}
+.bottom-nav-item{color:rgba(0,0,0,.55)}
+.bottom-nav-item.active{color:#000;background:var(--accent-yellow)}
+.floating-toolbar{background:#fff;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-md) !important}
+
+/* ---------- 12. 面板头分隔线加粗 ---------- */
+.panel-header{border-bottom:4px solid #000 !important}
+
+/* ---------- 13. 减少动画（无障碍） ---------- */
+@media(prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+
+/* ---------- 14. 响应式微调 ---------- */
+@media(max-width:900px){
+  .greeting-text{font-size:24px}
+  .hero-greeting{box-shadow:8px 8px 0 0 #FF6B6B !important}
+  .today-fortune-panel{box-shadow:8px 8px 0 0 #C4B5FD !important}
+}

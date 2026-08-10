@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Neo-brutalism 预览 · 小冷工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;900&family=Noto+Sans+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   NEO-BRUTALISM PREVIEW  ·  参考 designprompts.dev/neo-brutalism + playful-geometric
+   仅用于预览，不动真实项目逻辑
+   ========================================================================== */
+:root{
+  --neo-bg:#FFFDF5;          /* 奶油背景 */
+  --neo-ink:#000000;         /* 纯黑：文字/边框/阴影 */
+  --neo-accent:#FF6B6B;      /* 热红 主色 */
+  --neo-secondary:#FFD93D;   /* 明黄 辅助 */
+  --neo-soft:#C4B5FD;        /* 淡紫 柔和 */
+  --neo-white:#FFFFFF;       /* 白 */
+  --neo-shadow-sm:4px 4px 0 0 #000;
+  --neo-shadow-md:8px 8px 0 0 #000;
+  --neo-shadow-lg:12px 12px 0 0 #000;
+  --neo-radius:0px;          /* 一律直角 */
+  --neo-sidebar-w:250px;
+  --neo-topbar-h:60px;
+  --neo-font:'Space Grotesk','Noto Sans SC',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px}
+body{
+  font-family:var(--neo-font);
+  font-weight:700;                 /* 正文 bold */
+  background-color:var(--neo-bg);
+  color:var(--neo-ink);
+  line-height:1.45;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+/* 背景半色调点阵纹理 */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(0,0,0,.05) 1.4px, transparent 1.4px);
+  background-size:22px 22px;
+}
+button{font-family:inherit;font-weight:900;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-weight:700;font-size:inherit;color:inherit;border:none;outline:none;background:none}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+:focus-visible{outline:3px solid var(--neo-accent);outline-offset:2px}
+
+/* ===== 预览标识 ===== */
+.preview-badge{
+  position:fixed;top:14px;left:14px;z-index:999;
+  background:var(--neo-accent);color:#000;
+  border:3px solid #000;box-shadow:var(--neo-shadow-sm);
+  padding:8px 14px;font-weight:900;letter-spacing:.12em;font-size:12px;text-transform:uppercase;
+  transform:rotate(-2deg);
+}
+
+/* ===== 浮动装饰（Playful geometric） ===== */
+.deco{position:fixed;z-index:1;pointer-events:none}
+.deco-star{top:110px;right:56px;width:56px;height:56px;color:var(--neo-secondary);transform:rotate(12deg)}
+.deco-star2{bottom:90px;left:290px;width:42px;height:42px;color:var(--neo-accent);transform:rotate(-18deg)}
+.deco-plus{top:60px;right:280px;width:34px;height:34px;color:#000;transform:rotate(8deg)}
+.deco-circle{bottom:140px;right:90px;width:70px;height:70px;border:5px solid var(--neo-soft);border-radius:50%}
+.deco-tri{top:300px;left:40px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid var(--neo-secondary);transform:rotate(14deg)}
+.deco-arrow{bottom:60px;right:220px;width:60px;height:60px;color:#000;transform:rotate(8deg)}
+
+/* ===== App 布局 ===== */
+.app{
+  position:relative;z-index:2;
+  max-width:1440px;margin:0 auto;
+  display:grid;grid-template-columns:var(--neo-sidebar-w) 1fr;gap:18px;
+  padding:18px;min-height:100vh;
+}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  background:var(--neo-white);
+  border:4px solid #000;box-shadow:var(--neo-shadow-md);border-radius:0;
+  padding:18px;display:flex;flex-direction:column;gap:16px;
+  position:sticky;top:18px;align-self:start;height:calc(100vh - 36px);overflow:auto;
+}
+.sidebar-header{display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:40px;height:40px;background:var(--neo-accent);border:3px solid #000;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-shadow-sm)}
+.sidebar-title{font-weight:900;font-size:20px;letter-spacing:-.02em;text-transform:uppercase}
+.sidebar-title .dot{color:var(--neo-accent)}
+.sidebar-profile{display:flex;align-items:center;gap:10px;background:var(--neo-secondary);border:3px solid #000;padding:10px;box-shadow:var(--neo-shadow-sm)}
+.avatar{width:38px;height:38px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;border:2px solid #000;border-radius:50%}
+.profile-name{font-weight:900;font-size:14px}
+.profile-desc{font-size:11px;font-weight:700}
+.sidebar-nav{display:flex;flex-direction:column;gap:10px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:11px 12px;background:var(--neo-white);
+  border:3px solid #000;border-radius:0;box-shadow:var(--neo-shadow-sm);
+  font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:13px;
+  transition:transform .1s linear,box-shadow .1s linear,background .1s linear;
+}
+.nav-item svg{width:18px;height:18px;flex-shrink:0}
+.nav-item:hover{transform:translate(-2px,-2px);box-shadow:var(--neo-shadow-md)}
+.nav-item:active{transform:translate(2px,2px);box-shadow:none}
+.nav-item.active{background:var(--neo-accent);transform:translate(-2px,-2px);box-shadow:var(--neo-shadow-md)}
+.sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.help-center-card{display:flex;align-items:center;gap:10px;background:var(--neo-soft);border:3px solid #000;padding:10px;box-shadow:var(--neo-shadow-sm)}
+.help-center-icon{width:28px;height:28px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;border-radius:50%}
+.help-center-title{font-weight:900;font-size:12px;text-transform:uppercase}
+.help-center-desc{font-size:10px;font-weight:700}
+.sidebar-version-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:3px solid #000;padding-top:10px}
+.sidebar-version{font-size:10px;font-weight:700;letter-spacing:.04em}
+.sound-wave{display:flex;gap:3px;align-items:flex-end;height:16px}
+.wave-bar{width:3px;background:#000;animation:wave 1s linear infinite}
+.wave-bar:nth-child(2){animation-delay:.15s}.wave-bar:nth-child(3){animation-delay:.3s}
+.wave-bar:nth-child(4){animation-delay:.45s}.wave-bar:nth-child(5){animation-delay:.6s}.wave-bar:nth-child(6){animation-delay:.75s}
+@keyframes wave{0%,100%{height:4px}50%{height:16px}}
+
+/* ===== Main / Topbar ===== */
+.main-content{display:flex;flex-direction:column;gap:18px;min-width:0}
+.topbar{display:flex;align-items:center;gap:14px;background:var(--neo-white);border:4px solid #000;box-shadow:var(--neo-shadow-md);border-radius:0;padding:10px 14px;height:var(--neo-topbar-h)}
+.topbar-back{width:38px;height:38px;background:var(--neo-secondary);border:3px solid #000;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-shadow-sm);transition:transform .1s linear,box-shadow .1s linear}
+.topbar-back:active{transform:translate(2px,2px);box-shadow:none}
+.topbar-title{font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:-.02em}
+.topbar-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--neo-white);border:3px solid #000;padding:8px 12px;box-shadow:var(--neo-shadow-sm);min-width:0}
+.topbar-search input{width:100%;background:transparent;font-weight:700}
+.topbar-search input::placeholder{color:#000;opacity:.55;font-weight:700}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.icon-btn{width:38px;height:38px;background:var(--neo-white);border:3px solid #000;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-shadow-sm);transition:transform .1s linear,box-shadow .1s linear}
+.icon-btn:hover{transform:translate(-2px,-2px);box-shadow:var(--neo-shadow-md)}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:none}
+.topbar-add-btn{display:flex;align-items:center;gap:8px;background:var(--neo-accent);border:3px solid #000;box-shadow:var(--neo-shadow-sm);padding:0 16px;height:38px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:12px;transition:transform .1s linear,box-shadow .1s linear}
+.topbar-add-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+/* ===== Page ===== */
+.page-container{display:flex;flex-direction:column;gap:18px}
+.today-page{display:flex;flex-direction:column;gap:18px}
+
+/* Hero */
+.today-hero{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:stretch}
+.hero-left-stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+.hero-greeting{background:var(--neo-secondary);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-lg);padding:26px;display:flex;flex-direction:column;justify-content:space-between;min-height:170px;position:relative;overflow:hidden}
+.hero-greeting::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:var(--neo-accent);border:4px solid #000;border-radius:50%}
+.hero-greeting::before{content:"";position:absolute;right:70px;bottom:-24px;width:60px;height:60px;background:var(--neo-soft);border:4px solid #000;transform:rotate(18deg)}
+.greeting-text{font-weight:900;font-size:30px;line-height:1.15;letter-spacing:-.03em;text-transform:uppercase;position:relative;z-index:1}
+.greeting-text .accent{background:var(--neo-accent);padding:0 6px;border:3px solid #000;box-shadow:var(--neo-shadow-sm);display:inline-block;transform:rotate(-1deg)}
+.greeting-sub{font-size:13px;font-weight:700;margin-top:10px;max-width:300px;position:relative;z-index:1}
+.greeting-date{font-size:11px;font-weight:900;margin-top:14px;position:relative;z-index:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.greeting-date .date-badge{background:#000;color:#fff;padding:4px 10px;border:2px solid #000;letter-spacing:.04em}
+
+/* Alerts panel */
+.today-alerts-panel{background:var(--neo-white);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-md);padding:16px;flex:1;min-height:0}
+.panel-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:12px;border-bottom:4px solid #000;margin-bottom:12px}
+.panel-title{font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.panel-actions{display:flex;align-items:center;gap:10px}
+.panel-count{background:var(--neo-soft);border:3px solid #000;padding:3px 10px;font-weight:900;font-size:11px;text-transform:uppercase}
+.panel-icon-btn{width:32px;height:32px;background:var(--neo-white);border:3px solid #000;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-shadow-sm);transition:transform .1s linear,box-shadow .1s linear}
+.panel-icon-btn:active{transform:translate(2px,2px);box-shadow:none}
+.alert-list{display:flex;flex-direction:column;gap:10px}
+.alert-item{display:flex;gap:10px;align-items:flex-start;background:var(--neo-bg);border:3px solid #000;padding:10px;box-shadow:var(--neo-shadow-sm);transition:transform .1s linear}
+.alert-item:hover{transform:translate(-2px,-2px)}
+.alert-check{width:24px;height:24px;flex-shrink:0;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #000;font-weight:900}
+.alert-title{font-weight:900;font-size:13px;text-transform:uppercase}
+.alert-desc{font-size:11px;font-weight:700;margin-top:2px}
+.alert-item.done .alert-title,.alert-item.done .alert-desc{opacity:.5;text-decoration:line-through}
+
+/* Fortune panel */
+.today-fortune-panel{background:var(--neo-white);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-lg);padding:18px 16px 14px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.today-fortune-panel::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(90deg,var(--neo-accent) 0 14px,var(--neo-secondary) 14px 28px,var(--neo-soft) 28px 42px);border-bottom:3px solid #000}
+.fortune-rings{position:absolute;top:16px;right:12px;display:flex;gap:6px;z-index:0}
+.fortune-ring{width:12px;height:12px;border:3px solid #000;border-radius:50%;background:var(--neo-secondary)}
+.fortune-ring:nth-child(2){background:var(--neo-accent)}
+.fortune-ring:nth-child(3){background:var(--neo-soft)}
+.fortune-header{display:flex;align-items:center;gap:14px;margin-top:8px;margin-bottom:14px;position:relative;z-index:1}
+.fortune-date{display:flex;align-items:baseline;background:var(--neo-accent);border:3px solid #000;box-shadow:var(--neo-shadow-sm);padding:6px 10px}
+.fortune-date-day{font-size:28px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.fortune-date-sep{font-size:16px;font-weight:900;margin:0 1px}
+.fortune-date-month{font-size:14px;font-weight:900}
+.fortune-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.fortune-score-row{display:flex;align-items:baseline;gap:8px}
+.fortune-score{font-size:30px;font-weight:900;line-height:1}
+.fortune-stars{display:flex;gap:2px;font-size:14px}
+.fortune-star{color:#000;opacity:.25}
+.fortune-star.filled{opacity:1;color:var(--neo-accent)}
+.fortune-body{flex:1;display:flex;flex-direction:column;gap:12px}
+.fortune-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fortune-chip{background:var(--neo-bg);border:3px solid #000;padding:8px 10px;display:flex;align-items:center;gap:8px;min-width:0;box-shadow:var(--neo-shadow-sm)}
+.fortune-chip-icon{width:18px;height:18px;flex-shrink:0;border:2px solid #000}
+.fortune-chip-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.fortune-chip-value{font-size:13px;font-weight:900}
+.fortune-tips{display:flex;flex-direction:column;gap:8px}
+.fortune-tip{display:flex;align-items:center;gap:10px;background:var(--neo-white);border:3px solid #000;padding:8px 10px;box-shadow:var(--neo-shadow-sm)}
+.fortune-tip-icon{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;border:2px solid #000}
+.fortune-tip-do{background:#000}
+.fortune-tip-dont{background:var(--neo-accent)}
+.fortune-tip-label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.fortune-tip-value{display:block;font-size:12px;font-weight:700}
+.fortune-quote{font-size:11px;font-weight:700;line-height:1.5;padding:10px 12px;background:var(--neo-soft);border:3px solid #000;box-shadow:var(--neo-shadow-sm)}
+.fortune-refresh-btn{margin-top:auto;align-self:flex-start;background:var(--neo-secondary);border:3px solid #000;box-shadow:var(--neo-shadow-sm);padding:8px 14px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:12px;transition:transform .1s linear,box-shadow .1s linear}
+.fortune-refresh-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+/* Stat cards */
+.today-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.stat-card{background:var(--neo-white);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-md);padding:16px;display:flex;align-items:center;gap:14px;transition:transform .12s linear,box-shadow .12s linear}
+.stat-card:hover{transform:translateY(-8px);box-shadow:var(--neo-shadow-lg)}
+.stat-card:nth-child(1){background:var(--neo-secondary);transform:rotate(-1deg)}
+.stat-card:nth-child(2){background:var(--neo-soft);transform:rotate(1deg)}
+.stat-card:nth-child(3){background:var(--neo-accent);transform:rotate(-1deg)}
+.stat-card:nth-child(4){background:var(--neo-white);transform:rotate(1deg)}
+.stat-card:nth-child(1):hover,.stat-card:nth-child(2):hover,.stat-card:nth-child(3):hover,.stat-card:nth-child(4):hover{transform:rotate(0) translateY(-8px)}
+.progress-ring{width:54px;height:54px;flex-shrink:0}
+.stat-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.stat-value{font-size:20px;font-weight:900;letter-spacing:-.02em}
+
+/* ===== 大描边标题横幅 ===== */
+.display-banner{background:var(--neo-white);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-lg);padding:30px 26px;position:relative;overflow:hidden}
+.display-banner::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.06) 1.5px, transparent 1.5px);background-size:16px 16px;pointer-events:none}
+.display-title{font-size:clamp(34px,6vw,64px);font-weight:900;line-height:1;letter-spacing:-.03em;text-transform:uppercase;position:relative;z-index:1}
+.display-title .fill{color:var(--neo-accent)}
+.display-title .outline{-webkit-text-stroke:2px #000;color:transparent}
+.display-sub{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;margin-top:12px;position:relative;z-index:1}
+.display-sub .tag{background:var(--neo-secondary);border:3px solid #000;padding:3px 10px;box-shadow:var(--neo-shadow-sm);margin-right:8px}
+
+/* ===== 组件样板 ===== */
+.specimen{background:var(--neo-white);border:4px solid #000;border-radius:0;box-shadow:var(--neo-shadow-lg);padding:22px}
+.specimen-title{font-weight:900;font-size:18px;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:4px}
+.specimen-sub{font-size:11px;font-weight:700;margin-bottom:18px;border-bottom:4px solid #000;padding-bottom:12px}
+.specimen-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.specimen-block h4{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;background:var(--neo-secondary);display:inline-block;padding:2px 8px;border:3px solid #000}
+.btn-row{display:flex;flex-wrap:wrap;gap:12px}
+.btn{height:48px;padding:0 20px;display:inline-flex;align-items:center;gap:8px;background:var(--neo-accent);border:4px solid #000;box-shadow:var(--neo-shadow-sm);font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:#000;transition:transform .1s linear,box-shadow .1s linear}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:var(--neo-shadow-md)}
+.btn:active{transform:translate(2px,2px);box-shadow:none}
+.btn-primary{background:var(--neo-accent)}
+.btn-secondary{background:var(--neo-secondary)}
+.btn-soft{background:var(--neo-soft)}
+.btn-ghost{background:var(--neo-white)}
+.btn-sm{height:38px;padding:0 14px;font-size:11px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.input,.select,.textarea{background:var(--neo-white);border:4px solid #000;border-radius:0;padding:10px 12px;font-weight:700;box-shadow:var(--neo-shadow-sm);transition:background .1s linear,box-shadow .1s linear}
+.input::placeholder,.textarea::placeholder{color:#000;opacity:.5;font-weight:700}
+.input:focus-visible,.select:focus-visible,.textarea:focus-visible{background:var(--neo-secondary);box-shadow:var(--neo-shadow-md);outline:none}
+.select{appearance:none}
+.textarea{min-height:70px;resize:vertical}
+.check-row{display:flex;gap:18px;flex-wrap:wrap}
+.check{display:inline-flex;align-items:center;gap:8px;font-weight:900;font-size:12px;text-transform:uppercase;cursor:pointer}
+.check input{position:absolute;opacity:0;width:0;height:0}
+.check .box{width:22px;height:22px;background:var(--neo-white);border:3px solid #000;box-shadow:var(--neo-shadow-sm);display:flex;align-items:center;justify-content:center;color:#fff;transition:background .1s linear}
+.check input:checked + .box{background:var(--neo-accent)}
+.check input:checked + .box::after{content:"✓";font-weight:900}
+.check.radio .box{border-radius:50%}
+.toggle{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:12px;text-transform:uppercase;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:0;height:0}
+.toggle .track{width:52px;height:28px;background:var(--neo-white);border:3px solid #000;box-shadow:var(--neo-shadow-sm);position:relative;transition:background .1s linear}
+.toggle .knob{position:absolute;top:1px;left:1px;width:20px;height:20px;background:#000;border:2px solid #000;transition:transform .15s linear}
+.toggle input:checked + .track{background:var(--neo-secondary)}
+.toggle input:checked + .track .knob{transform:translateX(24px);background:var(--neo-accent)}
+
+.tag-row{display:flex;flex-wrap:wrap;gap:10px}
+.tag{display:inline-flex;align-items:center;gap:6px;background:var(--neo-soft);border:3px solid #000;box-shadow:var(--neo-shadow-sm);padding:4px 10px;font-weight:900;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.tag-red{background:var(--neo-accent)}
+.tag-yellow{background:var(--neo-secondary)}
+.tag-dot{width:10px;height:10px;border:2px solid #000;border-radius:50%}
+
+.todo-card{background:var(--neo-white);border:4px solid #000;box-shadow:var(--neo-shadow-md);padding:14px;display:flex;align-items:center;gap:12px}
+.todo-check{width:26px;height:26px;flex-shrink:0;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #000;font-weight:900}
+.todo-main{flex:1;min-width:0}
+.todo-text{font-weight:900;font-size:13px;text-transform:uppercase}
+.todo-meta{font-size:10px;font-weight:700;margin-top:2px}
+.todo-tags{display:flex;gap:6px;margin-top:6px}
+.todo-pill{background:var(--neo-accent);border:2px solid #000;padding:1px 8px;font-size:9px;font-weight:900;text-transform:uppercase}
+.todo-pill.medium{background:var(--neo-secondary)}
+.todo-pill.low{background:var(--neo-soft)}
+.todo-source{font-size:9px;font-weight:900;background:#000;color:#fff;padding:1px 8px}
+.todo-action-btn{width:30px;height:30px;background:var(--neo-white);border:3px solid #000;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-shadow-sm);transition:transform .1s linear,box-shadow .1s linear}
+.todo-action-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+/* Calendar mini */
+.cal{border:4px solid #000;box-shadow:var(--neo-shadow-sm);background:var(--neo-white);padding:12px}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-head span{font-size:10px;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:.02em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:2px solid #000;background:var(--neo-white);font-weight:900;font-size:11px;box-shadow:2px 2px 0 0 #000}
+.cal-cell.dim{opacity:.35}
+.cal-cell.today{background:var(--neo-accent);color:#000;border:3px solid #000}
+.cal-cell.mark{background:var(--neo-secondary)}
+
+/* Table */
+.neo-table{width:100%;border:4px solid #000;box-shadow:var(--neo-shadow-sm);border-collapse:collapse;background:var(--neo-white);font-size:12px}
+.neo-table th{background:var(--neo-secondary);border:2px solid #000;padding:8px 10px;text-align:left;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.neo-table td{border:2px solid #000;padding:8px 10px;font-weight:700}
+.neo-table tr:nth-child(even) td{background:var(--neo-bg)}
+
+/* Progress bar */
+.progress{height:22px;background:var(--neo-white);border:3px solid #000;box-shadow:var(--neo-shadow-sm);position:relative}
+.progress .bar{height:100%;background:var(--neo-accent);border-right:3px solid #000;width:68%}
+.progress .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px}
+
+/* Segmented control */
+.seg{display:inline-flex;border:3px solid #000;box-shadow:var(--neo-shadow-sm);background:var(--neo-white)}
+.seg button{padding:8px 16px;font-weight:900;text-transform:uppercase;font-size:11px;border-right:3px solid #000;background:var(--neo-white);transition:background .1s linear}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--neo-secondary)}
+.seg button:active{transform:none}
+
+/* Modal sample */
+.neo-modal{border:4px solid #000;box-shadow:var(--neo-shadow-lg);background:var(--neo-white);width:100%;max-width:320px}
+.neo-modal .modal-head{background:var(--neo-accent);border-bottom:4px solid #000;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.neo-modal .modal-head .t{font-weight:900;text-transform:uppercase;font-size:13px;letter-spacing:.04em}
+.neo-modal .modal-head .x{width:28px;height:28px;background:var(--neo-white);border:3px solid #000;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:var(--neo-shadow-sm)}
+.neo-modal .modal-body{padding:16px;font-weight:700;font-size:12px;line-height:1.6}
+.neo-modal .modal-foot{padding:0 16px 16px;display:flex;gap:10px;justify-content:flex-end}
+
+/* Toast */
+.neo-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) rotate(-1deg);z-index:900;background:#000;color:#fff;border:4px solid #000;box-shadow:var(--neo-shadow-md);padding:14px 22px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:13px;display:flex;align-items:center;gap:12px}
+.neo-toast .toast-dot{width:14px;height:14px;background:var(--neo-secondary);border:2px solid #fff;border-radius:50%}
+
+/* ===== 反馈调整：底板波点更清晰 + 彩色阴影 + 防超框/遮盖 ===== */
+html,body{overflow-x:hidden}
+body::before{background-image:radial-gradient(rgba(0,0,0,.16) 2px, transparent 2px);background-size:20px 20px}
+
+/* 彩色硬阴影（playful 风格） */
+.hero-greeting{box-shadow:12px 12px 0 0 #FF6B6B}
+.today-fortune-panel{box-shadow:12px 12px 0 0 #C4B5FD}
+.display-banner{box-shadow:12px 12px 0 0 #FFD93D;overflow:visible}
+.hero-greeting,.today-fortune-panel,.display-banner{transition:transform .12s linear,box-shadow .12s linear}
+.hero-greeting:hover{transform:translateY(-6px);box-shadow:16px 16px 0 0 #FF6B6B}
+.today-fortune-panel:hover{transform:translateY(-6px);box-shadow:16px 16px 0 0 #C4B5FD}
+.display-banner:hover{transform:translateY(-6px);box-shadow:16px 16px 0 0 #FFD93D}
+
+/* 大横幅角标星（贴纸感，参考截图） */
+.display-star{position:absolute;top:-14px;right:22px;width:38px;height:38px;background:var(--neo-secondary);border:3px solid #000;box-shadow:4px 4px 0 0 #000;display:flex;align-items:center;justify-content:center;transform:rotate(10deg);z-index:2;color:#000}
+
+/* 浮动装饰：仅在宽屏边距显示，避免遮盖内容 */
+.deco{display:none}
+@media(min-width:1600px){
+  .deco{display:block}
+  .deco-star{top:120px;left:18px;right:auto;width:44px;height:44px}
+  .deco-star2{bottom:130px;right:18px;left:auto;width:38px;height:38px}
+  .deco-plus{top:320px;right:22px;left:auto;width:30px;height:30px}
+  .deco-circle{bottom:230px;left:16px;right:auto;width:48px;height:48px}
+  .deco-arrow{top:210px;left:22px;right:auto;bottom:auto;width:44px;height:44px}
+  .deco-tri{display:none}
+}
+
+/* ===== 响应式 ===== */
+@media(max-width:980px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}
+  .sidebar-nav{flex-direction:row;flex-wrap:wrap;flex:1}
+  .sidebar-footer{width:100%;margin-top:0}
+  .today-hero{grid-template-columns:1fr}
+  .today-stats{grid-template-columns:repeat(2,1fr)}
+  .specimen-grid{grid-template-columns:1fr}
+  .deco-tri{display:none}
+}
+@media(max-width:560px){
+  .today-stats{grid-template-columns:1fr}
+  .greeting-text{font-size:24px}
+  .topbar-search{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+
+/* ===== 反馈修复：预览标识改静态通栏 + 问候语高亮框防超框遮字 ===== */
+.preview-badge{position:static;transform:none;display:block;width:max-content;margin:0 auto 14px;box-shadow:var(--neo-shadow-sm)}
+.greeting-text{line-height:1.34}
+.greeting-text .accent{transform:none;margin:0 4px;box-shadow:none;vertical-align:middle}
+
+/* ===== 可爱装饰 + 去单调（彩色图标chip / 日历柔色 / 小装饰） ===== */
+/* 侧边栏导航图标：彩色小方块底座 */
+.nav-item svg{width:38px;height:38px;padding:7px;border:3px solid #000;box-shadow:2px 2px 0 0 #000;background:#fff}
+.sidebar-nav .nav-item:nth-child(1) svg{background:#FFD93D}
+.sidebar-nav .nav-item:nth-child(2) svg{background:#C4B5FD}
+.sidebar-nav .nav-item:nth-child(3) svg{background:#FFF1B8}
+.sidebar-nav .nav-item:nth-child(4) svg{background:#E7E0FD}
+.sidebar-nav .nav-item:nth-child(5) svg{background:#FF9E9E}
+
+/* 日历：柔色底 + 周末着色 + 紫标记 + 事件点 */
+.cal{background:#FFF7DC}
+.cal-head span:nth-child(6),.cal-head span:nth-child(7){color:#FF6B6B}
+.cal-cell{flex-direction:column;gap:2px}
+.cal-cell.wk{background:#EFE9FE}
+.cal-cell.mark2{background:#C4B5FD}
+.cal-cell .ev{width:6px;height:6px;border-radius:50%;background:#FF6B6B;display:block}
+
+/* 行内小装饰（sparkles / hearts） */
+.sparkle{color:#FF6B6B;margin-left:6px;-webkit-text-stroke:0;display:inline-block}
+.sparkle.purple{color:#C4B5FD}
+
+/* 额外宽屏浮动可爱装饰 */
+@media(min-width:1600px){
+  .deco-heart{top:430px;left:24px;width:36px;height:36px;color:#FF6B6B;transform:rotate(-10deg)}
+  .deco-spk{bottom:340px;right:22px;width:30px;height:30px;color:#C4B5FD;transform:rotate(12deg)}
+}
+</style>
+</head>
+<body>
+
+<div class="preview-badge">PREVIEW · Neo-brutalism</div>
+
+<!-- 浮动装饰 -->
+<svg class="deco deco-star" viewBox="0 0 24 24" fill="currentColor" stroke="#000" stroke-width="2" stroke-linejoin="round"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+<svg class="deco deco-star2" viewBox="0 0 24 24" fill="currentColor" stroke="#000" stroke-width="2" stroke-linejoin="round"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+<svg class="deco deco-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<div class="deco deco-circle"></div>
+<div class="deco deco-tri"></div>
+<svg class="deco deco-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+<svg class="deco deco-heart" viewBox="0 0 24 24" fill="currentColor" stroke="#000" stroke-width="2" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+<svg class="deco deco-spk" viewBox="0 0 24 24" fill="currentColor" stroke="#000" stroke-width="2" stroke-linejoin="round"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>
+
+<div class="app">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M5 3 L19 3 L12 12 Z" fill="#000"/><path d="M5 21 L19 21 L12 12 Z" fill="#000"/></svg></span>
+      <span class="sidebar-title">小冷<span class="dot">.</span></span>
+    </div>
+    <div class="sidebar-profile">
+      <div class="avatar">冷</div>
+      <div class="profile-info">
+        <div class="profile-name">小冷</div>
+        <div class="profile-desc">杭州 · AI 自媒体</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <button class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>今日</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>创作</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="currentColor"/></svg>热点</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>习惯</button>
+      <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="help-center-card">
+        <div class="help-center-icon">?</div>
+        <div class="help-center-text">
+          <div class="help-center-title">帮助中心</div>
+          <div class="help-center-desc">有问题？点我查看说明</div>
+        </div>
+      </div>
+      <div class="sidebar-version-row">
+        <span class="sidebar-version">v3.3.34 · 模块留白美化</span>
+        <div class="sound-wave"><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main-content" id="mainContent">
+    <header class="topbar" id="topbar">
+      <button class="topbar-back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h1 class="topbar-title">今日</h1>
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索选题、内容、素材...">
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" title="搜索"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <button class="icon-btn" title="帮助"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+        <button class="topbar-add-btn" id="demoAddBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>新建</span></button>
+      </div>
+    </header>
+
+    <div class="page-container" id="pageContainer">
+      <div class="today-page">
+
+        <!-- Hero -->
+        <div class="today-hero">
+          <div class="hero-left-stack">
+            <div class="hero-greeting">
+              <div>
+                <div class="greeting-text">晚上好，<span class="accent">小冷</span>！<br>今天想创作点什么？</div>
+                <div class="greeting-sub">这里是你每日的 AI 内容创作仪表盘。快速查看待办、热点和创作进度。</div>
+              </div>
+              <div class="greeting-date">
+                <span class="date-badge">2026 · 08 · 10 周一</span>
+                <span>第 32 周</span>
+              </div>
+            </div>
+
+            <div class="today-alerts-panel">
+              <div class="panel-header">
+                <div class="panel-title">提醒 & 动态</div>
+                <div class="panel-actions">
+                  <button class="panel-icon-btn" title="清空已读"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                  <span class="panel-count">2 条</span>
+                </div>
+              </div>
+              <div class="alert-list">
+                <div class="alert-item">
+                  <div class="alert-check">✓</div>
+                  <div class="alert-content"><div class="alert-title">Deepseek Key 已配置</div><div class="alert-desc">运势与 AI 能力已就绪</div></div>
+                </div>
+                <div class="alert-item">
+                  <div class="alert-check"></div>
+                  <div class="alert-content"><div class="alert-title">抖音热点待跟进</div><div class="alert-desc">3 条新热点超过 2 小时未处理</div></div>
+                </div>
+                <div class="alert-item done">
+                  <div class="alert-check">✓</div>
+                  <div class="alert-content"><div class="alert-title">昨日数据同步完成</div><div class="alert-desc">播放量 12.4w · 互动 3.1w</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fortune -->
+          <div class="today-fortune-panel">
+            <div class="fortune-rings"><span class="fortune-ring"></span><span class="fortune-ring"></span><span class="fortune-ring"></span></div>
+            <div class="fortune-header">
+              <div class="fortune-date"><span class="fortune-date-day">10</span><span class="fortune-date-sep">/</span><span class="fortune-date-month">08</span></div>
+              <div class="fortune-title-wrap">
+                <div class="fortune-label">我的今日运势<span class="sparkle heart">♥</span></div>
+                <div class="fortune-score-row">
+                  <span class="fortune-score">82</span>
+                  <div class="fortune-stars"><span class="fortune-star filled">★</span><span class="fortune-star filled">★</span><span class="fortune-star filled">★</span><span class="fortune-star filled">★</span><span class="fortune-star">★</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="fortune-body">
+              <div class="fortune-row">
+                <div class="fortune-chip"><span class="fortune-chip-icon" style="background:#A0E8AF"></span><span class="fortune-chip-label">幸运色</span><span class="fortune-chip-value">薄荷绿</span></div>
+                <div class="fortune-chip"><span class="fortune-chip-icon" style="background:#FFF3D0">🍱</span><span class="fortune-chip-label">幸运食物</span><span class="fortune-chip-value">牛油果吐司</span></div>
+              </div>
+              <div class="fortune-tips">
+                <div class="fortune-tip"><span class="fortune-tip-icon fortune-tip-do">✓</span><div class="fortune-tip-text"><span class="fortune-tip-label">今日建议</span><span class="fortune-tip-value">把大目标拆成小任务逐个击破</span></div></div>
+                <div class="fortune-tip"><span class="fortune-tip-icon fortune-tip-dont">✕</span><div class="fortune-tip-text"><span class="fortune-tip-label">避免</span><span class="fortune-tip-value">情绪上头时回复争议评论</span></div></div>
+              </div>
+              <div class="fortune-quote">向着月亮出发，即使不能到达，也能站在群星之中。</div>
+              <button class="fortune-refresh-btn" id="demoRegen">重新生成</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="today-stats">
+          <div class="stat-card"><svg class="progress-ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="#000" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="138" stroke-dashoffset="35" transform="rotate(-90 27 27)"/></svg><div class="stat-info"><div class="stat-label">今日完成率</div><div class="stat-value">6/8</div></div></div>
+          <div class="stat-card"><svg class="progress-ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="#000" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="138" stroke-dashoffset="138" transform="rotate(-90 27 27)"/></svg><div class="stat-info"><div class="stat-label">昨日播放量</div><div class="stat-value">12.4w</div></div></div>
+          <div class="stat-card"><svg class="progress-ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="#000" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="138" stroke-dashoffset="138" transform="rotate(-90 27 27)"/></svg><div class="stat-info"><div class="stat-label">昨日互动数</div><div class="stat-value">3.1w</div></div></div>
+          <div class="stat-card"><svg class="progress-ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="#000" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="138" stroke-dashoffset="60" transform="rotate(-90 27 27)"/></svg><div class="stat-info"><div class="stat-label">已发布内容</div><div class="stat-value">24 篇</div></div></div>
+        </div>
+
+        <!-- 大描边标题横幅 -->
+        <div class="display-banner">
+          <span class="display-star"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" stroke="#000" stroke-width="2" stroke-linejoin="round"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg></span>
+          <div class="display-title"><span class="fill">Neo</span> <span class="outline">Brutalism</span><span class="sparkle">✦</span></div>
+          <div class="display-sub"><span class="tag">工作台</span><span class="tag">风格预览</span><span>仅供确认 · 非真实数据</span></div>
+        </div>
+
+        <!-- 组件样板 -->
+        <div class="specimen">
+          <div class="specimen-title">组件系统 · Components<span class="sparkle purple">✦</span></div>
+          <div class="specimen-sub">Neo-brutalism 全站元素样例（仅展示样式，非真实数据）</div>
+          <div class="specimen-grid">
+            <div class="specimen-block">
+              <h4>按钮 Buttons</h4>
+              <div class="btn-row">
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-soft">Soft</button>
+                <button class="btn btn-ghost">Ghost</button>
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-ghost" disabled>Disabled</button>
+              </div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>输入框 Inputs</h4>
+              <div class="field"><label>文本输入</label><input class="input" type="text" placeholder="输入内容..."></div>
+              <div class="field"><label>下拉选择</label><select class="select"><option>选项 A</option><option>选项 B</option></select></div>
+              <div class="field"><label>多行文本</label><textarea class="textarea" placeholder="写点什么..."></textarea></div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>复选 / 单选 / 开关</h4>
+              <div class="check-row">
+                <label class="check"><input type="checkbox" checked><span class="box"></span>复选</label>
+                <label class="check radio"><input type="radio" name="r" checked><span class="box"></span>单选 A</label>
+                <label class="check radio"><input type="radio" name="r"><span class="box"></span>单选 B</label>
+                <label class="toggle"><input type="checkbox" checked><span class="track"><span class="knob"></span></span>开关</label>
+              </div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>标签 Tags</h4>
+              <div class="tag-row">
+                <span class="tag tag-red"><span class="tag-dot"></span>High</span>
+                <span class="tag tag-yellow"><span class="tag-dot"></span>Medium</span>
+                <span class="tag"><span class="tag-dot"></span>Low</span>
+                <span class="tag tag-red">抖音</span>
+                <span class="tag tag-yellow">小红书</span>
+              </div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>待办卡片 Todo</h4>
+              <div class="todo-card">
+                <div class="todo-check">✓</div>
+                <div class="todo-main">
+                  <div class="todo-text">拆解爆款视频脚本</div>
+                  <div class="todo-meta">08-10 · 短视频选题</div>
+                  <div class="todo-tags"><span class="todo-pill">High</span><span class="todo-source">抖音</span></div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="todo-action-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
+                  <button class="todo-action-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>迷你日历 Calendar</h4>
+              <div class="cal">
+                <div class="cal-head"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                <div class="cal-grid">
+                  <span class="cal-cell dim">28</span><span class="cal-cell dim">29</span><span class="cal-cell dim">30</span><span class="cal-cell dim">31</span><span class="cal-cell">1<i class="ev"></i></span><span class="cal-cell mark">2</span><span class="cal-cell wk">3</span>
+                  <span class="cal-cell">4</span><span class="cal-cell mark2">5</span><span class="cal-cell">6</span><span class="cal-cell">7</span><span class="cal-cell">8<i class="ev"></i></span><span class="cal-cell wk">9</span><span class="cal-cell today">10</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>表格 Table</h4>
+              <table class="neo-table">
+                <thead><tr><th>内容</th><th>平台</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td>爆款拆解</td><td>抖音</td><td>已发布</td></tr>
+                  <tr><td>选题清单</td><td>小红书</td><td>草稿</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="specimen-block">
+              <h4>进度 / 分段 Progress & Segmented</h4>
+              <div class="field"><div class="progress"><div class="bar"></div><div class="pct">68%</div></div></div>
+              <div class="seg"><button class="active">日</button><button>周</button><button>月</button></div>
+            </div>
+
+            <div class="specimen-block">
+              <h4>弹窗 Modal</h4>
+              <div class="neo-modal">
+                <div class="modal-head"><span class="t">确认操作</span><span class="x">✕</span></div>
+                <div class="modal-body">这是一段弹窗示例文案，展示 Neo-brutalism 的弹窗样式：粗边框、彩色标题栏、硬阴影。</div>
+                <div class="modal-foot"><button class="btn btn-ghost btn-sm">取消</button><button class="btn btn-primary btn-sm">确定</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="neo-toast" id="demoToast"><span class="toast-dot"></span>示例 Toast · 已保存</div>
+
+<script>
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+  var toast = document.getElementById('demoToast');
+  toast.style.display='none';
+  function showToast(){ toast.style.display='flex'; setTimeout(function(){ toast.style.display='none'; }, 2200); }
+  document.getElementById('demoRegen').addEventListener('click', showToast);
+  document.getElementById('demoAddBtn').addEventListener('click', showToast);
+</script>
+</body>
+</html>
