@@ -852,19 +852,19 @@ textarea,
 .today-hero {
   display: grid;
   grid-template-columns: 1fr 360px;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 20px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .hero-greeting {
   background: linear-gradient(135deg, #F8FEE0 0%, #E8F8A0 100%);
   border-radius: var(--radius-lg);
-  padding: 32px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 200px;
+  min-height: 170px;
   position: relative;
   overflow: hidden;
 }
@@ -872,7 +872,7 @@ textarea,
 .hero-side-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -888,10 +888,10 @@ textarea,
 }
 
 .hero-greeting .greeting-text {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--text);
-  line-height: 1.25;
+  line-height: 1.2;
   position: relative;
   z-index: 1;
 }
@@ -901,10 +901,10 @@ textarea,
 }
 
 .hero-greeting .greeting-sub {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--text-soft);
-  margin-top: 10px;
-  max-width: 340px;
+  margin-top: 8px;
+  max-width: 300px;
   position: relative;
   z-index: 1;
 }
@@ -912,7 +912,7 @@ textarea,
 .hero-greeting .greeting-date {
   font-size: var(--font-size-xs);
   color: var(--text-mute);
-  margin-top: 18px;
+  margin-top: 12px;
   position: relative;
   z-index: 1;
   display: flex;
@@ -1040,7 +1040,7 @@ textarea,
   background: var(--bg-card);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
   flex: 1;
   min-height: 0;
