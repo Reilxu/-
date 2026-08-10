@@ -1057,11 +1057,11 @@ textarea,
   background: linear-gradient(135deg, #FFFFFF 0%, #FDFCF5 100%);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  padding: 22px 20px 18px;
+  padding: 16px 16px 14px;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
-  min-height: 220px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -1112,9 +1112,9 @@ textarea,
 .fortune-header {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-top: 6px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-top: 4px;
+  margin-bottom: 10px;
   position: relative;
   z-index: 1;
 }
@@ -1128,19 +1128,19 @@ textarea,
 }
 
 .fortune-date-day {
-  font-size: 36px;
+  font-size: 30px;
   line-height: 1;
   letter-spacing: -1px;
 }
 
 .fortune-date-sep {
-  font-size: 20px;
+  font-size: 16px;
   color: var(--text-mute);
   margin: 0 2px;
 }
 
 .fortune-date-month {
-  font-size: 18px;
+  font-size: 15px;
   color: var(--text-soft);
 }
 
@@ -1164,7 +1164,7 @@ textarea,
 }
 
 .fortune-score {
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 800;
   line-height: 1;
   color: var(--text);
@@ -1198,7 +1198,7 @@ textarea,
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 120px;
+  min-height: 90px;
   text-align: center;
 }
 
@@ -1228,15 +1228,15 @@ textarea,
 
 .fortune-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .fortune-chip {
   background: var(--bg-muted);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1272,8 +1272,8 @@ textarea,
 .fortune-tips {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .fortune-tip {
@@ -1319,14 +1319,14 @@ textarea,
 .fortune-tip-value {
   font-size: var(--font-size-sm);
   color: var(--text);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .fortune-quote {
   font-size: var(--font-size-xs);
   color: var(--text-soft);
   line-height: 1.5;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(194, 248, 79, 0.12);
   border-radius: 10px;
   border-left: 3px solid var(--accent);
@@ -1339,7 +1339,7 @@ textarea,
   justify-content: center;
   gap: 10px;
   height: 100%;
-  min-height: 120px;
+  min-height: 90px;
   text-align: center;
 }
 

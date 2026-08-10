@@ -690,11 +690,6 @@ const App = {
                 <span class="fortune-chip-label">幸运食物</span>
                 <span class="fortune-chip-value" id="fortuneFood">--</span>
               </div>
-              <div class="fortune-chip">
-                <span class="fortune-chip-icon" style="background:${this.esc('#7AC74F')}" id="fortuneWuxingDot"></span>
-                <span class="fortune-chip-label">今日五行</span>
-                <span class="fortune-chip-value" id="fortuneWuxing">--</span>
-              </div>
             </div>
             <div class="fortune-tips">
               <div class="fortune-tip">
@@ -737,17 +732,6 @@ const App = {
     return ['木', '木', '火', '火', '土', '土', '金', '金', '水', '水'][ganIdx];
   },
 
-  wuxingInfo(w) {
-    const map = {
-      '金': { color: '#D9C7A3' },
-      '木': { color: '#7AC74F' },
-      '水': { color: '#5BB8E8' },
-      '火': { color: '#FF6B5E' },
-      '土': { color: '#E0B65C' },
-    };
-    return map[w] || map['木'];
-  },
-
   async loadFortune() {
     const panel = document.getElementById('todayFortunePanel');
     if (!panel) return;
@@ -775,8 +759,6 @@ const App = {
       const colorEl = document.getElementById('fortuneColor');
       const colorDotEl = document.getElementById('fortuneColorDot');
       const foodEl = document.getElementById('fortuneFood');
-      const wuxingEl = document.getElementById('fortuneWuxing');
-      const wuxingDotEl = document.getElementById('fortuneWuxingDot');
       const adviceEl = document.getElementById('fortuneAdvice');
       const avoidEl = document.getElementById('fortuneAvoid');
       const quoteEl = document.getElementById('fortuneQuote');
@@ -786,8 +768,6 @@ const App = {
       if (colorEl) colorEl.textContent = data.luckyColor || '--';
       if (colorDotEl) colorDotEl.style.background = data.luckyColorHex || '#C2F84F';
       if (foodEl) foodEl.textContent = data.luckyFood || '--';
-      if (wuxingEl) wuxingEl.textContent = data.wuxing || '--';
-      if (wuxingDotEl) wuxingDotEl.style.background = (this.wuxingInfo(data.wuxing) || {}).color || '#7AC74F';
       if (adviceEl) adviceEl.textContent = data.advice || '--';
       if (avoidEl) avoidEl.textContent = data.avoid || '--';
       if (quoteEl) quoteEl.textContent = data.quote || '';
