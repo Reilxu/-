@@ -7242,8 +7242,18 @@ textarea,
 .reward-step:hover { background: var(--bg-muted); }
 .reward-range { font-size: var(--font-size-xs); color: var(--text-mute); }
 
+/* ---- 新增/编辑习惯弹窗：可滚动 ---- */
+.habit-form {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 4px 8px 4px;
+  max-height: 100%;
+}
+
 /* ---- 数值打卡 / 盲盒弹窗 ---- */
-.value-modal, .makeup-modal, .note-form, .reward-form, .habit-form, .blindbox-result { padding: 4px; }
+.value-modal, .makeup-modal, .note-form, .reward-form, .blindbox-result { padding: 4px; }
 .vm-title { font-size: var(--font-size-lg); font-weight: 700; margin-bottom: 10px; }
 .vm-target, .vm-unit { font-size: var(--font-size-sm); color: var(--text-soft); text-align: center; }
 .vm-stepper { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 16px 0 6px; }
