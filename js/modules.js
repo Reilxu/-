@@ -248,6 +248,15 @@ const ModuleConfig = {
   // 更新日志
   updateLogs: [
     {
+      date: '2026-08-11',
+      version: 'v3.3.33',
+      content: `v3.3.33更新。
+- 首页 today-hero 布局重组：左侧改为「绿色欢迎 banner + 提醒 & 动态」上下堆叠，中间无间隔；右侧整列留给今日运势模块
+- today-hero 对齐方式恢复 stretch，让左侧堆叠与右侧运势卡片同高，模块之间不留白
+- 运势卡片内容区改为 flex 纵向 space-between，在拉伸高度下自动分布，避免底部空荡`,
+      impact: '首页模块排布更符合用户截图示意，减少模块间留白',
+    },
+    {
       date: '2026-08-10',
       version: 'v3.3.32',
       content: `v3.3.32更新。

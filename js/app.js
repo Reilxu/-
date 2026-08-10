@@ -500,16 +500,14 @@ const App = {
     let html = `
       <div class="today-page">
         <div class="today-hero">
-          <div class="hero-greeting">
-            <div>
-              <div class="greeting-text">${greeting}，<span class="accent">小冷</span>！<br>今天想创作点什么？</div>
-              <div class="greeting-sub">这里是你每日的 AI 内容创作仪表盘。快速查看待办、热点和创作进度。</div>
+          <div class="hero-left-stack">
+            <div class="hero-greeting">
+              <div>
+                <div class="greeting-text">${greeting}，<span class="accent">小冷</span>！<br>今天想创作点什么？</div>
+                <div class="greeting-sub">这里是你每日的 AI 内容创作仪表盘。快速查看待办、热点和创作进度。</div>
+              </div>
+              <div class="greeting-date">${this.renderGreetingDate()}</div>
             </div>
-            <div class="greeting-date">${this.renderGreetingDate()}</div>
-          </div>
-
-          <div class="hero-side-stack">
-            ${this.renderFortunePanel()}
 
             <div class="today-alerts-panel">
               <div class="panel-header">
@@ -524,6 +522,8 @@ const App = {
               </div>
             </div>
           </div>
+
+          ${this.renderFortunePanel()}
         </div>
 
         <div class="today-stats">
@@ -752,7 +752,7 @@ const App = {
     const showContent = (data) => {
       if (loadingEl) loadingEl.style.display = 'none';
       if (errorEl) errorEl.style.display = 'none';
-      if (contentEl) contentEl.style.display = 'block';
+      if (contentEl) contentEl.style.display = 'flex';
 
       const scoreEl = document.getElementById('fortuneScore');
       const starsEl = document.getElementById('fortuneStars');

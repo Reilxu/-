@@ -854,7 +854,14 @@ textarea,
   grid-template-columns: 1fr 360px;
   gap: 16px;
   margin-bottom: 20px;
-  align-items: start;
+  align-items: stretch;
+}
+
+.hero-left-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
 }
 
 .hero-greeting {
@@ -867,13 +874,6 @@ textarea,
   min-height: 170px;
   position: relative;
   overflow: hidden;
-}
-
-.hero-side-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
 }
 
 .hero-greeting::before {
@@ -1219,6 +1219,11 @@ textarea,
 
 .fortune-content {
   animation: fortune-fade-in 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  min-height: 0;
 }
 
 @keyframes fortune-fade-in {
@@ -4868,8 +4873,8 @@ textarea,
     grid-template-columns: 1fr;
   }
 
-  .hero-side-stack {
-    gap: 14px;
+  .hero-left-stack {
+    gap: 0;
   }
 
   .today-fortune-panel {
