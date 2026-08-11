@@ -47,9 +47,7 @@ body::before{
   background-image:radial-gradient(rgba(0,0,0,.16) 2px, transparent 2px);
   background-size:20px 20px;
 }
-.app,.main-content,.page-container,.bottom-nav,.floating-toolbar,
-.search-overlay,.help-overlay,.modal-overlay,.fab-overlay,.toast,
-.ai-fab-button,.ai-fab-overlay{position:relative;z-index:1}
+.app{position:relative;z-index:1}
 ::selection{background:var(--accent-yellow);color:#000}
 *:focus-visible{outline:3px solid var(--accent) !important;outline-offset:2px}
 
@@ -69,8 +67,8 @@ h1,h2,h3,.card-title,.panel-title,.topbar-title,.modal-title{font-weight:900;let
   box-shadow:var(--shadow-md) !important;
 }
 /* 卡片 hover 抬起 */
-.card:hover,.stat-card:hover,.content-card:hover,.news-card:hover,.hot-card:hover,
-.habit-card:hover,.trend-card:hover,.inspiration-card:hover,.competitor-card:hover{
+.card:hover,.stat-card:hover,.news-card:hover,.hot-card:hover,
+.trend-card:hover,.inspiration-card:hover,.competitor-card:hover{
   transform:translateY(-4px);
   box-shadow:var(--shadow-lg) !important;
 }
@@ -215,7 +213,107 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
   *{animation:none !important;transition:none !important}
 }
 
-/* ---------- 14. 响应式微调 ---------- */
+/* ---------- 14. 反馈修复补丁（v3.3.40） ---------- */
+
+/* 1. 问候语“小冷”用黑色 */
+.greeting-text .accent{color:#000 !important}
+
+/* 2. 列表项 hover 不再变黑，保持可见并轻微浮起 */
+.todo-item:hover,.alert-item:hover,.api-key-toggle:hover,.clear-todo-option:hover{
+  background:var(--bg-muted) !important;color:#000 !important;
+  transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 #000 !important;
+}
+
+/* 3. 顶栏：去掉“工作台”tab 与“新建”按钮，返回按钮黄色，标题大写 */
+.topbar-tabs,.topbar-add-btn{display:none !important}
+.topbar-back{display:flex !important;background:var(--accent-yellow) !important;color:#000 !important}
+.topbar-title{text-transform:uppercase;letter-spacing:-.01em}
+.topbar-search input::placeholder{color:#000;opacity:.55}
+
+/* 4. 侧边栏导航图标彩色底座 */
+.nav-item[data-module="today"] .nav-icon{background:#FFD93D !important}
+.nav-item[data-module="dashboard"] .nav-icon{background:#C4B5FD !important}
+.nav-item[data-module="topics"] .nav-icon{background:#FFB1D8 !important}
+.nav-item[data-module="content"] .nav-icon{background:#AFC9EA !important}
+.nav-item[data-module="decomp"] .nav-icon{background:#FF6B6B !important}
+.nav-item[data-module="hot"] .nav-icon{background:#FFD66B !important}
+.nav-item[data-module="habits"] .nav-icon{background:#B8CB9A !important}
+.nav-item[data-module="settings"] .nav-icon{background:#FFF3D6 !important}
+.nav-item[data-module="ainews"] .nav-icon{background:#FF9E9E !important}
+.nav-item[data-module="inbox"] .nav-icon{background:#E7E0FD !important}
+.nav-item[data-module="ai"] .nav-icon{background:#B5D8EB !important}
+
+/* 5. 数据看板 KPI 便签四色 */
+.report-kpis .kpi-card:nth-child(1){background:#FFD93D !important}
+.report-kpis .kpi-card:nth-child(2){background:#C4B5FD !important}
+.report-kpis .kpi-card:nth-child(3){background:#FFB1D8 !important}
+.report-kpis .kpi-card:nth-child(4){background:#AFC9EA !important}
+.report-kpis .kpi-card .kpi-label,.report-kpis .kpi-card .kpi-value{color:#000 !important}
+
+/* 6. 内容创作 / 爆款拆解 / 数据可视化卡片：彩色硬阴影，相邻不同色 */
+.content-card:nth-child(4n+1),.decomp-card:nth-child(4n+1),.chart-card:nth-child(4n+1){box-shadow:8px 8px 0 0 #FF6B6B !important}
+.content-card:nth-child(4n+2),.decomp-card:nth-child(4n+2),.chart-card:nth-child(4n+2){box-shadow:8px 8px 0 0 #FFD93D !important}
+.content-card:nth-child(4n+3),.decomp-card:nth-child(4n+3),.chart-card:nth-child(4n+3){box-shadow:8px 8px 0 0 #C4B5FD !important}
+.content-card:nth-child(4n+4),.decomp-card:nth-child(4n+4),.chart-card:nth-child(4n+4){box-shadow:8px 8px 0 0 #AFC9EA !important}
+.content-card:hover,.decomp-card:hover,.chart-card:hover{transform:translateY(-6px) !important}
+.content-card:nth-child(4n+1):hover,.decomp-card:nth-child(4n+1):hover,.chart-card:nth-child(4n+1):hover{box-shadow:12px 12px 0 0 #FF6B6B !important}
+.content-card:nth-child(4n+2):hover,.decomp-card:nth-child(4n+2):hover,.chart-card:nth-child(4n+2):hover{box-shadow:12px 12px 0 0 #FFD93D !important}
+.content-card:nth-child(4n+3):hover,.decomp-card:nth-child(4n+3):hover,.chart-card:nth-child(4n+3):hover{box-shadow:12px 12px 0 0 #C4B5FD !important}
+.content-card:nth-child(4n+4):hover,.decomp-card:nth-child(4n+4):hover,.chart-card:nth-child(4n+4):hover{box-shadow:12px 12px 0 0 #AFC9EA !important}
+
+/* 7. 习惯打卡文字可见 + 帮助中心白字修复 */
+.habit-card-name,.habit-card-target,.habit-card-time,.habit-card-progress,
+.habits-greet,.habits-date,.habits-progress-text,.habits-card-title,
+.habits-stat-label,.habits-stat-value,.habits-empty,.habits-tab,
+.help-center-title,.help-center-desc{color:#000 !important}
+.habit-card.is-done .habit-card-name,.habit-card.is-done .habit-card-target,
+.habit-card.is-done .habit-card-time,.habit-card.is-done .habit-card-progress{color:#000 !important}
+
+/* 8. 弹窗居中、非白底 */
+.modal-overlay{position:fixed !important;inset:0 !important;display:none !important;align-items:center !important;justify-content:center !important;padding:20px !important}
+.modal-overlay.show{display:flex !important}
+.modal,.search-panel,.help-panel,.fab-panel,.ai-fab-panel{background:var(--bg) !important}
+.modal-header{background:var(--accent-yellow) !important;border-bottom:4px solid #000 !important}
+.modal-footer{border-top:4px solid #000 !important}
+@media(max-width:900px){
+  .modal-overlay{align-items:center !important;padding:20px !important}
+  .modal{border-radius:0 !important;max-width:500px !important;animation:none !important}
+}
+
+/* 9. 习惯卡阴影色 = 图标底色（由 habits.js 注入 --hc） */
+.habit-card{box-shadow:8px 8px 0 0 var(--hc,#000) !important;transition:transform .12s linear,box-shadow .12s linear !important}
+.habit-card:hover{transform:translateY(-6px) !important;box-shadow:12px 12px 0 0 var(--hc,#000) !important}
+
+/* 10. 日历对齐预览 */
+.calendar-card{background:#FFF7DC !important}
+.calendar-day-header:nth-child(6),.calendar-day-header:nth-child(7){color:#FF6B6B !important}
+.calendar-day{border:2px solid #000 !important;box-shadow:2px 2px 0 0 #000 !important}
+.calendar-day.today{background:#FF6B6B !important;color:#000 !important;border:3px solid #000 !important}
+.calendar-day:not(.today):hover{background:var(--bg-muted) !important}
+.calendar-todo-dot{background:#FF6B6B !important}
+.calendar-nav-btn{background:#fff !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
+
+/* 11. 今日运势对齐预览 */
+.today-fortune-panel::before{height:10px !important;background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px) !important;border-bottom:3px solid #000 !important}
+.fortune-rings{top:16px !important;right:12px !important;left:auto !important;transform:none !important;gap:6px !important}
+.fortune-ring{width:12px !important;height:12px !important;border:3px solid #000 !important;border-radius:50% !important;background:#FFD93D !important;box-shadow:none !important}
+.fortune-ring:nth-child(2){background:#FF6B6B !important}
+.fortune-ring:nth-child(3){background:#C4B5FD !important}
+.fortune-date{background:var(--accent) !important;border:3px solid #000 !important;box-shadow:var(--shadow-sm) !important;padding:6px 10px !important}
+.fortune-date-day,.fortune-date-month,.fortune-date-sep{color:#000 !important}
+.fortune-chip{background:var(--bg) !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
+.fortune-tip{background:#fff !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
+.fortune-quote{background:var(--accent-purple) !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
+
+/* 12. AI 热点概要保持深底浅色字 */
+.ai-summary-card{background:linear-gradient(135deg,#1d2b1f 0%,#14242c 100%) !important;color:#EAF4E6 !important;border-color:rgba(194,248,79,0.28) !important}
+.ai-summary-card--notice{background:var(--bg-card) !important;color:var(--text-soft) !important;border:1px dashed var(--border) !important}
+
+/* 13. 模块间距统一 18px */
+.app,.main-content,.page-container,.today-page,.today-hero,.hero-left-stack,.today-stats,.today-calendar-todo-row{gap:18px !important}
+.app{padding:18px !important}
+
+/* ---------- 15. 响应式微调 ---------- */
 @media(max-width:900px){
   .greeting-text{font-size:24px}
   .hero-greeting{box-shadow:8px 8px 0 0 #FF6B6B !important}

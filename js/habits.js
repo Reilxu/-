@@ -255,7 +255,7 @@
     }
     var time = (h.time_slot_start ? h.time_slot_start : '') + (h.time_slot_end ? '–' + h.time_slot_end : '');
     var timeHtml = time ? '<div class="habit-card-time">🕒 ' + esc(time) + '</div>' : '';
-    return '<div class="habit-card ' + (done ? 'is-done' : '') + '" data-act="check" data-id="' + h.id + '" data-type="' + h.target_type + '">' +
+    return '<div class="habit-card ' + (done ? 'is-done' : '') + '" data-act="check" data-id="' + h.id + '" data-type="' + h.target_type + '" style="--hc:' + esc(h.color) + '">' +
       '<div class="habit-icon-wrap" style="background:' + esc(h.color) + '">' + (HABIT_ICONS[h.icon] || HABIT_ICONS.circle) + '</div>' +
       '<div class="habit-card-info">' +
         '<div class="habit-card-name">' + esc(h.name) + '</div>' +
