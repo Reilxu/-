@@ -265,6 +265,17 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.53',
+      content: `v3.3.53更新。
+- 糖罐内糖果改为「罐体内部不规则堆积」：js/habits.js renderGlassJar 不再把糖果排成一行，而是按糖罐 PNG 的视觉轮廓（顶部/底部窄、中间宽的抛物线罐肚）给每颗糖生成绝对定位的 left/top/rotate
+- 位置使用基于索引的确定性伪随机，保证同一颗糖位置稳定；y 方向偏向底部模拟重力堆积，x 方向限制在罐体宽度内并留边距，整体看起来在玻璃肚里自然堆叠
+- 晃动逻辑不变：.jar-shaking 仍触发 .jar-shake-wrap / .jar-candy-pile / .jar-candy 的物理摆动动画，糖果会随罐体一起晃动
+- neo-brutalism.css 第 17 节更新：.jar-candy-pile 改为 absolute 铺满 100%×100%；.jar-candy 改为 absolute 定位并保留圆角/阴影；.jar-overflow 移到罐体右下角
+- 缓存版本 ?v=84 → ?v=85`,
+      impact: '糖罐 PNG 里的糖果真正「装进」玻璃罐体，不规则排列且随罐体晃动',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.52',
       content: `v3.3.52更新。
 - 糖罐视觉替换为 PNG：用户给出透明底糖罐图（1254×1254 RGBA），复制到 assets/candy-jar.png

@@ -9,7 +9,7 @@
   var esc = function (s) { return (window.App && App.esc) ? App.esc(s) : String(s == null ? '' : s); };
 
   // ---------- 习惯图标库（切分后的 PNG 图标）----------
-  var ICON_ASSET_VERSION = '84';
+  var ICON_ASSET_VERSION = '85';
   function habitIconSvg(size) {
     return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
   }
@@ -433,15 +433,57 @@
   function renderGlassJar(candy) {
     var maxShow = 80;
     var list = candy.slice(0, maxShow);
+
+    // 罐体轮廓参数（基于糖罐 PNG 视觉比例）
+    var JAR_TOP = 34;      // 玻璃罐体顶部 %
+    var JAR_BOTTOM = 76;   // 玻璃罐体底部 %
+    var HALF_TOP = 13;     // 颈部半宽 %
+    var HALF_CENTER = 35;  // 肚子最宽处半宽 %
+    var HALF_BOTTOM = 25;  // 底部半宽 %
+    // 抛物线 halfWidth(t) = a*t^2 + b*t + c, t∈[0,1]
+    var c = HALF_TOP;
+    var b = 4 * HALF_CENTER - HALF_BOTTOM - 3 * HALF_TOP;
+    var a = HALF_BOTTOM - HALF_TOP - b;
+
+    function jarRand(seed) {
+      var x = Math.sin(seed * 12.9898) * 43758.5453;
+      return x - Math.floor(x);
+    }
+
     var balls = [];
     for (var i = 0; i < list.length; i++) {
-      var c = list[i];
-      var isRainbow = c.ball_type === 'rainbow';
-      var isFocus = c.ball_type === 'focus';
-      var h = !isRainbow && !isFocus ? habitById(c.habit_id) : null;
-      var color = isRainbow ? 'linear-gradient(135deg,#FFB5C2,#B5EAD7,#C7CEEA)' : (isFocus ? '#A6C8FF' : habitColor(c.habit_id));
+      var item = list[i];
+      var isRainbow = item.ball_type === 'rainbow';
+      var isFocus = item.ball_type === 'focus';
+      var h = !isRainbow && !isFocus ? habitById(item.habit_id) : null;
+      var color = isRainbow ? 'linear-gradient(135deg,#FFB5C2,#B5EAD7,#C7CEEA)' : (isFocus ? '#A6C8FF' : habitColor(item.habit_id));
       var icon = (h && HABIT_ICONS[h.icon]) ? habitIconImg(h.icon, 12) : '';
-      balls.push('<div class="jar-candy" style="background:' + esc(color) + ';animation-delay:' + (i * 0.015) + 's" title="' + (h ? esc(h.name) : c.ball_type) + ' · ' + (c.jar_date || '') + '">' + icon + '</div>');
+
+      // 基于索引的确定性伪随机，保证同一颗糖位置稳定
+      var seed = i * 37 + 91;
+      // t 偏向 1（底部），模拟重力堆积；越靠后的糖略偏上
+      var pileBias = 0.55 - Math.min(0.2, i / 300);
+      var t = Math.pow(jarRand(seed), pileBias);
+      var y = JAR_TOP + t * (JAR_BOTTOM - JAR_TOP);
+      // 按 y 计算罐体半宽，再留边距让糖不贴玻璃
+      var halfW = Math.max(2, a * t * t + b * t + c);
+      var margin = 7;
+      var xRange = Math.max(2, halfW - margin);
+      var x = 50 + (jarRand(seed + 1) * 2 - 1) * xRange;
+      var rot = (jarRand(seed + 2) * 70 - 35).toFixed(1);
+      // 再叠加一点 y 方向随机，让堆积更自然
+      var yJitter = (jarRand(seed + 3) * 4 - 2);
+      y = Math.max(JAR_TOP + 6, Math.min(JAR_BOTTOM - 4, y + yJitter));
+
+      balls.push('<div class="jar-candy" style="'
+        + 'background:' + esc(color) + ';'
+        + 'left:' + x.toFixed(1) + '%;'
+        + 'top:' + y.toFixed(1) + '%;'
+        + 'transform:translate(-50%,-50%) rotate(' + rot + 'deg);'
+        + 'animation-delay:' + (i * 0.015).toFixed(3) + 's;'
+        + 'z-index:' + (i + 1) + ';"'
+        + ' title="' + (h ? esc(h.name) : item.ball_type) + ' · ' + (item.jar_date || '') + '">'
+        + icon + '</div>');
     }
     var overflow = candy.length - maxShow;
     var overflowTag = overflow > 0 ? '<div class="jar-overflow">+' + overflow + '</div>' : '';
