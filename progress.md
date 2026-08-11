@@ -34,12 +34,13 @@
 - **今日页去掉 `.main-content` 外框**，各模块直接漂浮在奶油底上；模块间距统一为 **16px**（与图例一致）。
 
 ### 2.3 部署与版本
-- 当前版本：**v3.3.50**（打卡图标与扭蛋机改为 PNG 资源；缓存版本 `?v=82`）。
-- **镜像站**：`http://191.40.37.48` ✅ **v3.3.50**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200；`assets/gacha-machine.png` 可访问 200（~1.98MB）、`assets/icons/sunrise.png` 等 21 个 PNG 均可访问 200；index.html 含 `v3.3.50` / `?v=82`；无头 Chrome 实测 5 个习惯图标均 `<img>` 加载完成、扭蛋机 PNG 渲染 280×420）。
+- 当前版本：**v3.3.51**（减肥记录纳入 Supabase 云端同步；缓存版本 `?v=83`）。
+- **镜像站**：`http://191.40.37.48` ✅ **v3.3.51**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200；本次仅改 `store.js`（减肥记录云端同步）、`index.html`（?v=83 / v3.3.51）、`modules.js`（更新日志）；UI 无视觉变化）。
 - **GitHub / Vercel**：`main` 当前为 **v3.3.49**（commit `bcc430f`）。**v3.3.50 已本地就绪但未推送**——本机无持久 GitHub 凭证，需用户临时提供 PAT 后走 `git push` 触发 Vercel 自动构建（历史规约：commit → 注入 PAT → `push --no-thin` → 立即清除 token）。
 - **v3.3.47 改动（减肥记录模块）**：①在「自律」分组新增 `weightloss` 模块（图标、导航、注册齐全）；②新增 `js/weightloss.js`（月份选择器、体重日历、今日体重卡、AI 饮食建议、记录琐事、趋势图、AI 报告、首次引导弹窗）；③新增 `css/weightloss.css`（Neo-brutalism 独立样式）；④`store.js` 数据访问改用 `getObject/setObject`（对象型），并从 `SYNC_BUCKETS` 移除三个 weightloss 键（数组型同步循环不兼容对象型，避免云端数组回写覆盖本地对象）；⑤缓存 `?v=77`→`?v=79`，版本串 `v3.3.45`→`v3.3.47`。
 - **v3.3.49 改动（banner 加入打字猫 GIF）**：在首页 `.hero-greeting` banner 右下角新增 `<img class="hero-cat-gif" src="assets/cat-typing.gif">`；GIF 已验证含透明像素（P 模式有 alpha），桌面显示 150×150、移动端 ≤900px 显示 100×100，底部贴近 banner 下边框内侧；`server.js` 增加 `.gif` MIME 类型，`remote-setup.sh` 增加 `chmod -R 755 /var/www/workbench` 修复首次部署时 assets 403 问题。缓存 `?v=80`→`?v=81`，版本串 `v3.3.48`→`v3.3.49`。
 - **v3.3.50 改动（打卡图标 + 扭蛋机 PNG 化）**：按用户提供的精灵图替换打卡模块视觉资源。①**图标**：用户给出一张未分割的精灵图 `图标.png`（1254×1254 RGBA），用 Python PIL 按 **6 列 × 4 行、每格 209×209、顶部 209px 为空行（图标从 y=209 起）** 自动切分，每格居中裁 170×170，产出 `assets/icons/` 下 21 个 PNG（与 `HABIT_ICONS` 的 key 一一对应：sunrise/book/droplet/sparkes/activity/coffee/moon/apple/pencil/code/music/heart/flame/star/target/leaf/zap/walk/dumbbell/pill/ointment）。`js/habits.js` 的 `HABIT_ICONS` 由「内联 SVG 字符串」改为「`<img class="habit-icon-img" src="assets/icons/<key>.png?v=82">`」（新增 `habitIconImg(key,size)` / `ICON_ASSET_VERSION='82'` 辅助函数；默认 `circle` 仍用 SVG 圆，保留旧线条观感）；习惯卡图标、`.icon-pick` 图标选择器、小球罐 `.jar-candy` 图标行全部切到 `habitIconImg()`（选择器 18px、球罐 12px、卡片 28px，尺寸在 `neo-brutalism.css` 第 15 节控制）。②**扭蛋机**：用户给出 `扭蛋机png.png`（1024×1536 RGBA），复制到 `assets/gacha-machine.png`；`habits.js` 删除原纯 CSS 绘制的扭蛋机 DOM（`.gacha-dome`/`.gacha-body`/`.gacha-earing`/`.gacha-lever` 等），改为单张 `<img class="gacha-machine-img" src="assets/gacha-machine.png?v=82">` + 出蛋口 `.gacha-chute`（`gacha()` 逻辑引用的 `#gachaMachine` / `#gachaChute` 保留不变）；`neo-brutalism.css` 第 16 节新增 `.gacha-machine`（max-width 340px、移动端 280px）、`.gacha-chute`（绝对定位出蛋口）、`.gacha-spinning` 抖动动画。③`index.html` 全部 `?v=81`→`?v=82`（13 处）、版本串 `v3.3.49`→`v3.3.50`；`server.js` 已含 `.png` MIME，无需改。**验证**：`node --check js/habits.js` 通过、CSS 花括号 188=188 配对；无头 Chrome 实测 5 个习惯图标 `<img>` 均 `complete:true` 且 src 指向 `assets/icons/*.png?v=82`、扭蛋机 PNG `complete:true` 尺寸 280×420；镜像站 curl 验证 `gacha-machine.png` 200（1.98MB）、`sunrise.png` 200（43KB）、`habits.js?v=82` 含 `gacha-machine.png` 与 `assets/icons/` 引用、`index.html?v=82` 含 `v3.3.50`。缓存 `?v=81`→`?v=82`，版本串 `v3.3.49`→`v3.3.50`。
+- **v3.3.51 改动（减肥记录纳入云端同步）**：按用户要求，把此前本地-only 的减肥记录（体重档案 / 每日记录 / AI 报告）也同步到 Supabase 云端，`localStorage` 仅作离线缓存。①`store.js` 新增 `OBJECT_BUCKETS = ['xl_weightloss_profile','xl_weightloss_records','xl_weightloss_reports']`，并将这三个键加回 `SYNC_BUCKETS`；`supabase-client.js` 的 `upsertAll` 对对象型条目写 `item_id=null`、`data=整对象`（`list` 只回传 `data`，无字段污染），`schema.sql` 的 `item_id` 本就 nullable、`unique(user_id,bucket,item_id)` 允许每个对象 bucket 一行，故单对象存为单行无冲突。②`_pushBucket` / `syncAfterLogin` / `pushAllToCloud` / `pullFromCloud` / `refreshFromCloud` 全部增加 `_isObjectBucket` 分支：写本地后整对象推云端、登录后以云端为权威回拉；`setObject` 对对象型 bucket 写本地后立即 `_pushBucket`（数组型/settings 路径不变）。③修复 `refreshFromCloud` 对象型分支的误报：云端空且本地空（`{}`）时不再把 `null` 误判为变更，避免无谓重渲染。④`index.html` 全部 `?v=82`→`?v=83`（13 处）、版本串 `v3.3.50`→`v3.3.51`；`modules.js` 新增 v3.3.51 更新日志。**验证**：`node --check` 通过；用 mock `SBData`+`localStorage` 的单元测试（`/tmp/test_weightloss_sync.mjs`，18 项断言）全过——覆盖 setObject 推云端、settings 走 saveSettings、离线不推、pull/refresh 拉取与变更判定、syncAfterLogin 空云上传本地、数组 bucket 不误包、OBJECT_BUCKETS 分类正确。
 - **v3.3.48 改动（体验三处优化）**：①**今日运势**：原有「重新生成」按钮仅在出错时显示；改为运势卡片标题右侧常驻「↻ 刷新」按钮（`#fortuneRefreshBtnTop`），点击即 `API.generateDailyFortune(profile, true)` 强制让 Deepseek 拉取最新运势；另说明：运势本就按「日」缓存（cacheKey 含日期），跨天打开自动重新生成，即每日自动刷新。②**今日页间距**：`@media (min-width:900px)` 下把 `.today-page` gap 16→36px、`.today-hero` 28px、`.today-stats` 24px、`.hero-left-stack` 20px，电脑横版不再拥挤（移动端不受影响）。③**减肥日历**：新增 `#wlTrivia` 常驻面板，显示所选日期记录的琐事（注射/运动/排便/饮酒/熬夜/备注），点击日历某天即切换；日历面板底色由白 `#fff` 改为奶油 `#FFF7DC`，与今日页日历卡片 `.calendar-card` 底色（neo-brutalism 第 294 行）一致。缓存 `?v=79`→`?v=80`，版本串 `v3.3.47`→`v3.3.48`。
 - **v3.3.46**（仅本地 commit `1c1ef22`，未部署）：补充减肥记录模块产品文档到仓库（与实际代码版本号未对齐，v3.3.47 已含全部功能）。
 - **v3.3.45 改动**（历史）：①修复移动端 `.app` 布局异常；②落实云端优先同步；③缓存 `?v=76`→`?v=77`。
@@ -67,7 +68,7 @@
   7. **趋势图**：`trendSVG` 纯 SVG 折线（体重实线 + 目标虚线 + Y 轴刻度 + 数据点 tooltip），<2 条记录显示空态。
   8. **AI 报告**：`showReportModal` → `API.aiChat`，按「本月 / 全部」作用域缓存，需 ≥2 条记录。
 - **数据层**：档案 / 记录 / 报告均为**对象型**（记录按 `YYYY-MM-DD` 聚合，报告按作用域 key）。**必须用 `Store.getObject/setObject`**（不能用 `get/set` 数组型：空键返回 `[]` 为 truthy，会让 `ensureProfile` 误判“已有档案”跳过首启弹窗——这是 v3.3.47 修掉的核心 bug）。
-- **云端同步现状（重要）**：三个 weightloss 键**已移出 `SYNC_BUCKETS`**，因其为对象型，与数组型同步循环（`_pushBucket`/`upsertAll`）不兼容——若留在 `SYNC_BUCKETS`，登录后 `pullFromCloud` 可能把云端数组回写覆盖本地对象，造成数据损坏。因此**当前减肥记录仅本地 `localStorage` 持久化，不跨设备同步**（P3 待办：为对象型 bucket 单独接云端同步）。
+- **云端同步现状（重要）**：三个 weightloss 键**已重新纳入同步**（v3.3.51）。因其为对象型，归入 `OBJECT_BUCKETS`，`store.js` 的 `_pushBucket` / `syncAfterLogin` / `pushAllToCloud` / `pullFromCloud` / `refreshFromCloud` 均增加对象型分支——整对象作为一个 `user_items` 行（`item_id=null`、`data=对象`）同步到 Supabase，既不破坏数组型同步循环，也不会把云端数组回写覆盖本地对象。因此**登录后减肥记录也跨设备同步**，`localStorage` 仅作离线缓存（P3 已解决）。
 
 ---
 
@@ -166,6 +167,14 @@
   - 登录后每 20s：`refreshFromCloud()` 把云端最新数据拉回本地缓存并触发重渲染（断网时自动保留本地，不报错）。
   - 因此「你看到的内容 = 云端内容」，另一端写入后，本端最多 20s 内自动刷新看到（无需手动刷新）。
 - **换设备 / 换浏览器**：同样用同一 GitHub 账号登录，即自动从云端拉取数据。
+- **数据存储位置速查（2026-08-11 澄清）**：
+  | 状态 | 数据落在哪里 | 跨设备同步 |
+  | --- | --- | --- |
+  | 未登录（默认，没点「登录同步」） | 全部在浏览器 `localStorage` | 否（仅本机本浏览器） |
+  | 已用 GitHub 登录 | **全部数据（含减肥记录）实时同步到 Supabase 云端（PostgreSQL）**；`localStorage` 仅作离线缓存 | 是（同账号多端自动同步，云端为权威） |
+  | 减肥记录模块（体重档案 / 每日记录 / AI 报告） | 登录后随其他模块一起同步到云端（v3.3.51 起，对象型数据通过 `OBJECT_BUCKETS` 单独接云端）；未登录时仅本地 `localStorage` | 是（登录后多端自动同步）；未登录否 |
+  - 云端隔离：Supabase 启用 RLS，按 GitHub 用户 ID 隔离，你只能读写自己的数据；前端仅持 `anon` key，绝无 `service_role`。
+  - 说明：旧版「使用说明」里的「未登录：数据只在浏览器 localStorage」仍准确，但它描述的是**未登录**这一前提；一旦用 GitHub 登录，全部模块数据（含减肥记录）已上云。文档并未过时，只是需结合登录状态理解。v3.3.50 改的只是图标/扭蛋机的「显示资源」（PNG 文件），不改变存储逻辑；**v3.3.51 起减肥记录也纳入云端同步**（此前为 P3 待办的对象型数据特殊分支，现已用 `OBJECT_BUCKETS` 实现）。
 
 ### 8.3 安全与隔离
 - 数据按 GitHub 用户 ID 隔离（RLS `auth.uid() = user_id`），你只能读写自己的数据。

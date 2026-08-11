@@ -34,15 +34,20 @@ const Store = {
   },
 
   // 需要同步到云端的 bucket（排除纯缓存类 aiNews / hotTopics）
-  // 注意：减肥记录为「对象型」数据（按日期/作用域聚合），与下方数组型同步循环不兼容，
-  // 故不入 SYNC_BUCKETS，避免云端数组数据回写覆盖本地对象。其云端同步为 P3 待办。
+  // 减肥记录（xl_weightloss_*）为「对象型」数据，已纳入云端同步：
+  // 通过 OBJECT_BUCKETS 标记为对象型，同步时整对象作为一个云端条目（不走数组逐条），
+  // 详见 _isObjectBucket 与下方各 sync 方法。
   SYNC_BUCKETS: [
     'xl_today', 'xl_content', 'xl_topics', 'xl_materials',
     'xl_inbox', 'xl_links', 'xl_ai_chat', 'xl_decomp',
     'xl_mcn_output', 'xl_videos', 'xl_reports', 'xl_alerts',
     'xl_habits', 'xl_checkins', 'xl_pomodoro', 'xl_habit_notes',
-    'xl_candy_balls', 'xl_reward_items', 'xl_redemptions'
+    'xl_candy_balls', 'xl_reward_items', 'xl_redemptions',
+    'xl_weightloss_profile', 'xl_weightloss_records', 'xl_weightloss_reports'
   ],
+
+  // 对象型 bucket（整对象作为一个云端条目；与数组型 bucket 的逐条同步循环区分）
+  OBJECT_BUCKETS: ['xl_weightloss_profile', 'xl_weightloss_records', 'xl_weightloss_reports'],
 
   // 云端登录态（由 auth.js 通过 setCloudUser 设置）
   cloudUser: null,
@@ -173,6 +178,9 @@ const Store = {
       window.SBData.saveSettings(data || {}).catch(function (e) {
         console.warn('[Store] 设置同步云端失败:', e);
       });
+    } else if (this._shouldSync(key) && this._isObjectBucket(key)) {
+      // 对象型 bucket（减肥记录）写本地后实时推云端，localStorage 仅作离线缓存
+      this._pushBucket(key, data || {});
     }
   },
 
@@ -2133,29 +2141,52 @@ const Store = {
     return this.SYNC_BUCKETS.indexOf(key) >= 0 && this.isCloud();
   },
 
+  _isObjectBucket(key) {
+    return this.OBJECT_BUCKETS.indexOf(key) >= 0;
+  },
+
   // 单 bucket 后台异步推送（fire-and-forget，不阻塞 UI）
   _pushBucket(key, items) {
     if (!window.SBData) return;
-    window.SBData.upsertAll(key, items).catch(function (e) {
-      console.warn('[Store] 云端同步失败 bucket=' + key + ':', e);
-    });
+    if (this._isObjectBucket(key)) {
+      // 对象型：整对象作为单条 user_items 推送（包成 1 元素数组复用 upsertAll 的 delete+insert）
+      const obj = (!Array.isArray(items)) ? (items || {}) : (items[0] || {});
+      window.SBData.upsertAll(key, [obj]).catch(function (e) {
+        console.warn('[Store] 对象云端同步失败 bucket=' + key + ':', e);
+      });
+    } else {
+      window.SBData.upsertAll(key, items).catch(function (e) {
+        console.warn('[Store] 云端同步失败 bucket=' + key + ':', e);
+      });
+    }
   },
 
   /**
    * 登录后同步：以云端为权威，首次把本地数据上传。
    * 规则：云端空且本地有 → 上传本地；云端有 → 下载覆盖本地。
+   * 数组型 bucket 用 get/set；对象型（减肥记录）用 getObject/setObject + 整对象单条。
    */
   async syncAfterLogin() {
     if (!this.isCloud()) return;
     for (let i = 0; i < this.SYNC_BUCKETS.length; i++) {
       const key = this.SYNC_BUCKETS[i];
       try {
-        const local = this.get(key);
-        const cloud = await window.SBData.list(key);
-        if (cloud.length === 0 && local.length > 0) {
-          await window.SBData.upsertAll(key, local);
-        } else if (cloud.length > 0) {
-          this.set(key, cloud);
+        if (this._isObjectBucket(key)) {
+          const local = this.getObject(key);
+          const cloud = await window.SBData.list(key);
+          if (cloud.length === 0 && local && Object.keys(local).length > 0) {
+            await window.SBData.upsertAll(key, [local]);
+          } else if (cloud.length > 0) {
+            this.setObject(key, cloud[0]);
+          }
+        } else {
+          const local = this.get(key);
+          const cloud = await window.SBData.list(key);
+          if (cloud.length === 0 && local.length > 0) {
+            await window.SBData.upsertAll(key, local);
+          } else if (cloud.length > 0) {
+            this.set(key, cloud);
+          }
         }
       } catch (e) {
         console.warn('[Store] syncAfterLogin bucket=' + key + ' 失败:', e);
@@ -2179,7 +2210,13 @@ const Store = {
     if (!this.isCloud()) return false;
     for (let i = 0; i < this.SYNC_BUCKETS.length; i++) {
       const key = this.SYNC_BUCKETS[i];
-      try { await window.SBData.upsertAll(key, this.get(key)); } catch (e) { /* ignore */ }
+      try {
+        if (this._isObjectBucket(key)) {
+          await window.SBData.upsertAll(key, [this.getObject(key)]);
+        } else {
+          await window.SBData.upsertAll(key, this.get(key));
+        }
+      } catch (e) { /* ignore */ }
     }
     try { await window.SBData.saveSettings(this.getObject(this.KEYS.settings)); } catch (e) {}
     return true;
@@ -2192,7 +2229,11 @@ const Store = {
       const key = this.SYNC_BUCKETS[i];
       try {
         const cloud = await window.SBData.list(key);
-        this.set(key, cloud);
+        if (this._isObjectBucket(key)) {
+          if (cloud.length) this.setObject(key, cloud[0]);
+        } else {
+          this.set(key, cloud);
+        }
       } catch (e) { /* ignore */ }
     }
     try {
@@ -2207,7 +2248,7 @@ const Store = {
   /**
    * 云端优先刷新：把云端数据拉回本地缓存（本地仅作离线缓存）。
    * 登录态下由 startCloudSync 定时调用；拉取失败则保留本地缓存（离线可用）。
-   * 与 get() 保持同步读取不冲突：本地缓存被持续镜像成「云端的最新值」，
+   * 与 get()/getObject() 保持同步读取不冲突：本地缓存被持续镜像成「云端的最新值」，
    * 因此 UI 读到的就是云端数据，且断网时自动回退到本地。
    * @returns {Promise<boolean>} 是否有数据变化（用于决定是否重渲染）
    */
@@ -2225,11 +2266,22 @@ const Store = {
       const key = this.SYNC_BUCKETS[i];
       try {
         const cloud = await window.SBData.list(key);
-        const local = this.get(key);
-        if (JSON.stringify(norm(cloud)) !== JSON.stringify(norm(local))) {
-          // 直接写本地缓存，不触发回推云端（避免回声 / 重复写入）
-          try { localStorage.setItem(key, JSON.stringify(cloud || [])); } catch (e) {}
-          changed = true;
+        if (this._isObjectBucket(key)) {
+          // 云端有数据才覆盖本地；云端空时保留本地缓存（不擦除、不误报变更）
+          if (cloud.length > 0) {
+            const local = this.getObject(key);
+            if (JSON.stringify(cloud[0]) !== JSON.stringify(local)) {
+              // 直接写本地缓存，不触发回推云端（避免回声 / 重复写入）
+              try { localStorage.setItem(key, JSON.stringify(cloud[0])); } catch (e) {}
+              changed = true;
+            }
+          }
+        } else {
+          const local = this.get(key);
+          if (JSON.stringify(norm(cloud)) !== JSON.stringify(norm(local))) {
+            try { localStorage.setItem(key, JSON.stringify(cloud || [])); } catch (e) {}
+            changed = true;
+          }
         }
       } catch (e) { /* 离线 / 失败：保留本地缓存 */ }
     }

@@ -265,6 +265,15 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.51',
+      content: `v3.3.51更新。
+- 减肥记录（体重档案/每日记录/AI报告）纳入 Supabase 云端同步：新增 OBJECT_BUCKETS 标记对象型 bucket，store.js 的 _pushBucket / syncAfterLogin / pushAllToCloud / pullFromCloud / refreshFromCloud 均增加对象型分支（整对象作为一个 user_items 行，localStorage 仅作离线缓存）
+- setObject 对对象型 bucket 写本地后立即推云端；登录后多端自动同步减肥记录，断网保留本地
+- 缓存版本 ?v=82 → ?v=83`,
+      impact: '减肥记录与习惯/待办等模块一致，登录后跨设备自动同步，本地仅作离线缓存',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.45',
       content: `v3.3.45更新。
 - 修复移动端布局异常：.app 原为 grid(240px 1fr)，移动端侧边栏隐藏后 grid track 仍在，把主内容区挤压成约 100px 窄列、内容被 overflow:hidden 裁切，左侧大片空白；现 ≤900px 塌成单列，主内容占满视口宽度
