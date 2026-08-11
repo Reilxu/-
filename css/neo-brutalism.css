@@ -380,15 +380,36 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 .inspiration-grid .inspiration-card:nth-child(4n+4):hover,
 .user-inspiration-list .user-inspiration-item:nth-child(4n+4):hover{box-shadow:10px 10px 0 0 #AFC9EA !important}
 
-/* ---------- 15. 响应式微调 ---------- */
+/* ---------- 15. 习惯图标替换为 PNG 图标 ---------- */
+.habit-icon-img{width:28px;height:28px;object-fit:contain;display:block}
+.icon-pick .habit-icon-img{width:18px;height:18px}
+.jar-candy .habit-icon-img{width:12px;height:12px}
+
+/* ---------- 16. 扭蛋机替换为 PNG 图片 ---------- */
+.gacha-machine{position:relative;width:100%;max-width:340px;margin:22px auto 0;user-select:none}
+.gacha-machine-img{width:100%;height:auto;display:block}
+.gacha-chute{
+  position:absolute;bottom:18%;left:50%;transform:translateX(-50%);
+  width:70px;height:70px;background:transparent;border:none;
+  display:flex;align-items:center;justify-content:center;overflow:visible
+}
+.gacha-spinning .gacha-machine-img{animation:gacha-img-shake .18s linear 8}
+@keyframes gacha-img-shake{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(4px)}
+}
+
+/* ---------- 17. 响应式微调 ---------- */
 @media(max-width:900px){
   .greeting-text{font-size:24px}
   .hero-greeting{box-shadow:8px 8px 0 0 #FF6B6B !important}
   .today-fortune-panel{box-shadow:8px 8px 0 0 #C4B5FD !important}
   .hero-cat-gif{width:100px;height:100px;right:4px;bottom:-4px}
+  .gacha-machine{max-width:280px}
+  .gacha-chute{width:55px;height:55px;bottom:17%}
 }
 
-/* ---------- 16. 移动端布局修复（v3.3.45）----------
+/* ---------- 18. 移动端布局修复（v3.3.45）----------
    根因：.app 是 grid(240px 1fr)，移动端 .sidebar{display:none} 后
    grid track 仍在，main-content 被挤到约 100px 窄列 + overflow:hidden，
    左侧大片空白、内容被裁。这里在 ≤900px 把 .app 塌成单列，让主内容占满。 */

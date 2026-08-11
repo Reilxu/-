@@ -8,30 +8,39 @@
 
   var esc = function (s) { return (window.App && App.esc) ? App.esc(s) : String(s == null ? '' : s); };
 
-  // ---------- 习惯图标库（Lucide 风格 SVG）----------
+  // ---------- 习惯图标库（切分后的 PNG 图标）----------
+  var ICON_ASSET_VERSION = '82';
+  function habitIconSvg(size) {
+    return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
+  }
+  function habitIconImg(key, size) {
+    size = size || 28;
+    if (key === 'circle') return habitIconSvg(size);
+    return '<img src="assets/icons/' + key + '.png?v=' + ICON_ASSET_VERSION + '" alt="' + esc(key) + '" class="habit-icon-img" width="' + size + '" height="' + size + '">';
+  }
   var HABIT_ICONS = {
-    circle: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>',
-    sunrise: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 22V8"/><path d="M4.93 10.93l1.41 1.41"/><path d="M19.07 10.93l-1.41 1.41"/><path d="M2 18h20"/><path d="M8 6l4-4 4 4"/></svg>',
-    book: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    droplet: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
-    sparkles: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg>',
-    activity: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-    coffee: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
-    moon: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-    apple: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75-1.06 4-1.06 2.5 0 4-2 4-4.94 0-3-2-5-4-5-.5 0-1 .2-1.5.5-.5-.3-1-.5-1.5-.5-2 0-4 2-4 5 0 2.94 1.5 4.94 4 4.94-1.25 0-2.5 1.06-4 1.06z"/><path d="M10 2c.5 1 1 2 2 2s1.5-1 2-2"/></svg>',
-    pencil: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
-    code: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    music: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    heart: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-    flame: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
-    star: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-    target: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
-    leaf: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-7 8-9 5 2 8 5 8 9a7 7 0 0 1-7 7z"/><path d="M2 21c0-4 3-7 8-9"/></svg>',
-    zap: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-    walk: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M13 22l-2-7-3-3 2-6"/><path d="M8 14l-2 4 4 2 3-3"/></svg>',
-    dumbbell: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11"/><path d="M21 21l-1-1"/><path d="M3 3l1 1"/><path d="M18 22l4-4"/><path d="M2 6l4-4"/></svg>',
-    pill: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="M8.5 8.5l7 7"/></svg>',
-    ointment: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h8a2 2 0 0 1 2 2v2H8V4a2 2 0 0 1 2-2z"/><path d="M6 6h14v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6z"/><path d="M12 11v6"/><path d="M8 11v6"/><path d="M16 11v6"/></svg>'
+    circle: habitIconImg('circle', 28),
+    sunrise: habitIconImg('sunrise', 28),
+    book: habitIconImg('book', 28),
+    droplet: habitIconImg('droplet', 28),
+    sparkles: habitIconImg('sparkles', 28),
+    activity: habitIconImg('activity', 28),
+    coffee: habitIconImg('coffee', 28),
+    moon: habitIconImg('moon', 28),
+    apple: habitIconImg('apple', 28),
+    pencil: habitIconImg('pencil', 28),
+    code: habitIconImg('code', 28),
+    music: habitIconImg('music', 28),
+    heart: habitIconImg('heart', 28),
+    flame: habitIconImg('flame', 28),
+    star: habitIconImg('star', 28),
+    target: habitIconImg('target', 28),
+    leaf: habitIconImg('leaf', 28),
+    zap: habitIconImg('zap', 28),
+    walk: habitIconImg('walk', 28),
+    dumbbell: habitIconImg('dumbbell', 28),
+    pill: habitIconImg('pill', 28),
+    ointment: habitIconImg('ointment', 28)
   };
 
   // 马卡龙色板（10 色）
@@ -431,7 +440,7 @@
       var isFocus = c.ball_type === 'focus';
       var h = !isRainbow && !isFocus ? habitById(c.habit_id) : null;
       var color = isRainbow ? 'linear-gradient(135deg,#FFB5C2,#B5EAD7,#C7CEEA)' : (isFocus ? '#A6C8FF' : habitColor(c.habit_id));
-      var icon = (h && HABIT_ICONS[h.icon]) ? HABIT_ICONS[h.icon].replace('width="22" height="22"', 'width="12" height="12"') : '';
+      var icon = (h && HABIT_ICONS[h.icon]) ? habitIconImg(h.icon, 12) : '';
       balls.push('<div class="jar-candy" style="background:' + esc(color) + ';animation-delay:' + (i * 0.015) + 's" title="' + (h ? esc(h.name) : c.ball_type) + ' · ' + (c.jar_date || '') + '">' + icon + '</div>');
     }
     var overflow = candy.length - maxShow;
@@ -674,36 +683,9 @@
             '<div class="gacha-pool-weight">权重 ' + w + (pct > 0 ? ' · ' + pct + '%' : '') + '</div>' +
             '</div>';
         }).join('') + '</div>';
-    var scallops = '<div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div><div class="gacha-scallop"></div>';
-    var windowPrizes = rewards.length === 0
-      ? '<div class="gacha-window-prize">🎁</div>'
-      : rewards.slice(0, 5).map(function (r) {
-          return '<div class="gacha-window-prize" title="' + esc(r.name) + '">' + getRewardIcon(r) + '</div>';
-        }).join('');
     var machineHtml = '<div class="gacha-machine" id="gachaMachine">' +
-      '<div class="gacha-ears"><div class="gacha-ear"></div><div class="gacha-ear"></div></div>' +
-      '<div class="gacha-dome">' +
-        '<div class="gacha-dome-ring"></div>' +
-        '<div class="gacha-dome-inner">' +
-          '<div class="gacha-balls">' + renderGachaBalls(rewards) + '</div>' +
-          '<div class="gacha-glass"></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="gacha-body">' +
-        '<div class="gacha-awning">' + scallops + '</div>' +
-        '<div class="gacha-window">' +
-          '<div class="gacha-window-label">本期大奖</div>' +
-          '<div class="gacha-window-prizes">' + windowPrizes + '</div>' +
-        '</div>' +
-        '<div class="gacha-controls">' +
-          '<div class="gacha-chute-wrap">' +
-            '<div class="gacha-chute" id="gachaChute"></div>' +
-            '<div class="gacha-arrows">▼<br>▼<br>▼</div>' +
-          '</div>' +
-          '<div class="gacha-coin-slot"></div>' +
-          '<div class="gacha-lever"><div class="gacha-knob"></div></div>' +
-        '</div>' +
-      '</div>' +
+      '<img class="gacha-machine-img" src="assets/gacha-machine.png?v=' + ICON_ASSET_VERSION + '" alt="扭蛋机">' +
+      '<div class="gacha-chute" id="gachaChute"></div>' +
       '</div>';
     return '<div class="habits-rewards">' +
       '<div class="rewards-head"><div class="rewards-points">🍬 当前糖果 <b>' + points + '</b></div>' +

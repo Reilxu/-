@@ -1,7 +1,7 @@
 # 任务检查点 · 小冷个人 AI 工作台
 
 > 本文件是「新会话上下文单点入口」。未来开新会话，只需读取本文件即可恢复全部项目背景。
-> 最后更新：2026-08-11 13:27（**v3.3.49 已双站上线（镜像 + Vercel）**：首页 banner 加入透明背景打字猫 GIF，位于红框阴影 banner 右下角，底部贴近下边框内侧）
+> 最后更新：2026-08-11 15:30（**v3.3.50 已部署镜像站**：打卡模块的「线条 SVG 图标」整体替换为 PNG 图标（21 个，由用户提供的精灵图自动分割），「CSS 绘制扭蛋机」替换为单张 PNG 扭蛋机图；缓存 `?v=82`。**Vercel 待用户提供 GitHub PAT 后推送**（本机无持久凭证））
 
 ---
 
@@ -34,11 +34,12 @@
 - **今日页去掉 `.main-content` 外框**，各模块直接漂浮在奶油底上；模块间距统一为 **16px**（与图例一致）。
 
 ### 2.3 部署与版本
-- 当前版本：**v3.3.49**（banner 加入打字猫 GIF；缓存版本 `?v=81`）。
-- **镜像站**：`http://191.40.37.48` ✅ **v3.3.49**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，`assets/cat-typing.gif` 可访问 200、`Content-Type: image/gif`，index.html 含 `v3.3.49` / `?v=81`）。
-- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `bcc430f`，v3.3.49，含 banner 猫 GIF）；Vercel 已自动构建并上线 **v3.3.49** ✅（已跨网实测 `assets/cat-typing.gif` 可访问、`js/app.js?nocache=1` 含 `hero-cat-gif`/`assets/cat-typing.gif`）。PAT 用后从 remote URL 清除（见第 3 节）。当前 `main` 与 `origin/main` 完全同步（无 ahead/behind）。
+- 当前版本：**v3.3.50**（打卡图标与扭蛋机改为 PNG 资源；缓存版本 `?v=82`）。
+- **镜像站**：`http://191.40.37.48` ✅ **v3.3.50**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200；`assets/gacha-machine.png` 可访问 200（~1.98MB）、`assets/icons/sunrise.png` 等 21 个 PNG 均可访问 200；index.html 含 `v3.3.50` / `?v=82`；无头 Chrome 实测 5 个习惯图标均 `<img>` 加载完成、扭蛋机 PNG 渲染 280×420）。
+- **GitHub / Vercel**：`main` 当前为 **v3.3.49**（commit `bcc430f`）。**v3.3.50 已本地就绪但未推送**——本机无持久 GitHub 凭证，需用户临时提供 PAT 后走 `git push` 触发 Vercel 自动构建（历史规约：commit → 注入 PAT → `push --no-thin` → 立即清除 token）。
 - **v3.3.47 改动（减肥记录模块）**：①在「自律」分组新增 `weightloss` 模块（图标、导航、注册齐全）；②新增 `js/weightloss.js`（月份选择器、体重日历、今日体重卡、AI 饮食建议、记录琐事、趋势图、AI 报告、首次引导弹窗）；③新增 `css/weightloss.css`（Neo-brutalism 独立样式）；④`store.js` 数据访问改用 `getObject/setObject`（对象型），并从 `SYNC_BUCKETS` 移除三个 weightloss 键（数组型同步循环不兼容对象型，避免云端数组回写覆盖本地对象）；⑤缓存 `?v=77`→`?v=79`，版本串 `v3.3.45`→`v3.3.47`。
 - **v3.3.49 改动（banner 加入打字猫 GIF）**：在首页 `.hero-greeting` banner 右下角新增 `<img class="hero-cat-gif" src="assets/cat-typing.gif">`；GIF 已验证含透明像素（P 模式有 alpha），桌面显示 150×150、移动端 ≤900px 显示 100×100，底部贴近 banner 下边框内侧；`server.js` 增加 `.gif` MIME 类型，`remote-setup.sh` 增加 `chmod -R 755 /var/www/workbench` 修复首次部署时 assets 403 问题。缓存 `?v=80`→`?v=81`，版本串 `v3.3.48`→`v3.3.49`。
+- **v3.3.50 改动（打卡图标 + 扭蛋机 PNG 化）**：按用户提供的精灵图替换打卡模块视觉资源。①**图标**：用户给出一张未分割的精灵图 `图标.png`（1254×1254 RGBA），用 Python PIL 按 **6 列 × 4 行、每格 209×209、顶部 209px 为空行（图标从 y=209 起）** 自动切分，每格居中裁 170×170，产出 `assets/icons/` 下 21 个 PNG（与 `HABIT_ICONS` 的 key 一一对应：sunrise/book/droplet/sparkes/activity/coffee/moon/apple/pencil/code/music/heart/flame/star/target/leaf/zap/walk/dumbbell/pill/ointment）。`js/habits.js` 的 `HABIT_ICONS` 由「内联 SVG 字符串」改为「`<img class="habit-icon-img" src="assets/icons/<key>.png?v=82">`」（新增 `habitIconImg(key,size)` / `ICON_ASSET_VERSION='82'` 辅助函数；默认 `circle` 仍用 SVG 圆，保留旧线条观感）；习惯卡图标、`.icon-pick` 图标选择器、小球罐 `.jar-candy` 图标行全部切到 `habitIconImg()`（选择器 18px、球罐 12px、卡片 28px，尺寸在 `neo-brutalism.css` 第 15 节控制）。②**扭蛋机**：用户给出 `扭蛋机png.png`（1024×1536 RGBA），复制到 `assets/gacha-machine.png`；`habits.js` 删除原纯 CSS 绘制的扭蛋机 DOM（`.gacha-dome`/`.gacha-body`/`.gacha-earing`/`.gacha-lever` 等），改为单张 `<img class="gacha-machine-img" src="assets/gacha-machine.png?v=82">` + 出蛋口 `.gacha-chute`（`gacha()` 逻辑引用的 `#gachaMachine` / `#gachaChute` 保留不变）；`neo-brutalism.css` 第 16 节新增 `.gacha-machine`（max-width 340px、移动端 280px）、`.gacha-chute`（绝对定位出蛋口）、`.gacha-spinning` 抖动动画。③`index.html` 全部 `?v=81`→`?v=82`（13 处）、版本串 `v3.3.49`→`v3.3.50`；`server.js` 已含 `.png` MIME，无需改。**验证**：`node --check js/habits.js` 通过、CSS 花括号 188=188 配对；无头 Chrome 实测 5 个习惯图标 `<img>` 均 `complete:true` 且 src 指向 `assets/icons/*.png?v=82`、扭蛋机 PNG `complete:true` 尺寸 280×420；镜像站 curl 验证 `gacha-machine.png` 200（1.98MB）、`sunrise.png` 200（43KB）、`habits.js?v=82` 含 `gacha-machine.png` 与 `assets/icons/` 引用、`index.html?v=82` 含 `v3.3.50`。缓存 `?v=81`→`?v=82`，版本串 `v3.3.49`→`v3.3.50`。
 - **v3.3.48 改动（体验三处优化）**：①**今日运势**：原有「重新生成」按钮仅在出错时显示；改为运势卡片标题右侧常驻「↻ 刷新」按钮（`#fortuneRefreshBtnTop`），点击即 `API.generateDailyFortune(profile, true)` 强制让 Deepseek 拉取最新运势；另说明：运势本就按「日」缓存（cacheKey 含日期），跨天打开自动重新生成，即每日自动刷新。②**今日页间距**：`@media (min-width:900px)` 下把 `.today-page` gap 16→36px、`.today-hero` 28px、`.today-stats` 24px、`.hero-left-stack` 20px，电脑横版不再拥挤（移动端不受影响）。③**减肥日历**：新增 `#wlTrivia` 常驻面板，显示所选日期记录的琐事（注射/运动/排便/饮酒/熬夜/备注），点击日历某天即切换；日历面板底色由白 `#fff` 改为奶油 `#FFF7DC`，与今日页日历卡片 `.calendar-card` 底色（neo-brutalism 第 294 行）一致。缓存 `?v=79`→`?v=80`，版本串 `v3.3.47`→`v3.3.48`。
 - **v3.3.46**（仅本地 commit `1c1ef22`，未部署）：补充减肥记录模块产品文档到仓库（与实际代码版本号未对齐，v3.3.47 已含全部功能）。
 - **v3.3.45 改动**（历史）：①修复移动端 `.app` 布局异常；②落实云端优先同步；③缓存 `?v=76`→`?v=77`。
@@ -118,12 +119,14 @@
 
 | 文件路径 | 说明 |
 | --- | --- |
-| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css` → `weightloss.css?v=81`；版本字符串 `v3.3.49`；脚本统一 `?v=81` |
+| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css` → `weightloss.css?v=82`；版本字符串 `v3.3.50`；脚本统一 `?v=82` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/style.css` | **原站样式，换肤期禁止修改** |
-| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v77）**，所有 Neo-brutalism 视觉与修复补丁在此 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v82）**，所有 Neo-brutalism 视觉与修复补丁在此；第 15 节=图标 PNG 尺寸、第 16 节=扭蛋机 PNG |
 | `/Users/xuleng/WorkBuddy/ai/workspace/neo-brutalism-preview.html` | 预览/参考页面，用于比对设计效果 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/app.js` | 主应用逻辑，含页面渲染、弹窗、日历、KPI 等 |
-| `/Users/xuleng/WorkBuddy/ai/workspace/js/habits.js` | 习惯打卡模块；已注入 `--hc` 变量使阴影跟随图标色 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/js/habits.js` | 习惯打卡模块；已注入 `--hc` 变量使阴影跟随图标色；v3.3.50 `HABIT_ICONS` 改为 PNG `<img>`、扭蛋机改为单张 PNG |
+| `/Users/xuleng/WorkBuddy/ai/workspace/assets/gacha-machine.png` | **v3.3.50 新增**：扭蛋机 PNG 图（复制自用户 `扭蛋机png.png` 1024×1536），替代原 CSS 绘制扭蛋机 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/assets/icons/` | **v3.3.50 新增**：21 个打卡图标 PNG（由用户 `图标.png` 精灵图按 6×4 网格自动分割，每格裁 170×170），key 与 `HABIT_ICONS` 对应 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/weightloss.js` | **减肥记录模块**（v3.3.47 新增）；暴露 `window.WeightLossModule`；对象型数据走 `getObject/setObject` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/weightloss.css` | **减肥记录模块样式**（v3.3.47 新增），独立 Neo-brutalism 风格，不改动 `style.css` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/modules.js` | 模块注册、导航顺序、更新日志 |
@@ -143,7 +146,7 @@
 ## 7. 给新会话的 TL;DR
 
 - 这是一个**纯前端的个人 AI 工作台**，已做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前版本 **v3.3.49**：移动端布局已修复、云端优先同步已落实；**镜像站 v3.3.49 + Vercel v3.3.49 均已部署** ✅。新增「减肥记录」模块（自律分组）：月份选择器 + 体重日历 + 今日体重卡（BMI/进度）+ AI 饮食/报告 + 记录琐事 + 趋势图 + 首启引导；数据本地 `localStorage`（对象型，`getObject/setObject`）。v3.3.48 体验优化：运势常驻刷新按钮 + 今日页桌面间距放宽 + 减肥日历琐事查看面板与奶油底色对齐。v3.3.49 banner 加入透明背景打字猫 GIF。
+- 当前版本 **v3.3.50**：移动端布局已修复、云端优先同步已落实；**镜像站 v3.3.50 已部署** ✅，**Vercel 待 PAT 推送**（v3.3.49 已上线）。新增「减肥记录」模块（自律分组）：月份选择器 + 体重日历 + 今日体重卡（BMI/进度）+ AI 饮食/报告 + 记录琐事 + 趋势图 + 首启引导；数据本地 `localStorage`（对象型，`getObject/setObject`）。v3.3.48 体验优化：运势常驻刷新按钮 + 今日页桌面间距放宽 + 减肥日历琐事查看面板与奶油底色对齐。v3.3.49 banner 加入透明背景打字猫 GIF。**v3.3.50：打卡模块图标整体由线条 SVG 改为 PNG（21 个，精灵图自动分割）、扭蛋机由 CSS 绘制改为单张 PNG 图（均带 `?v=82` 缓存破坏）**。
 - **Supabase 服务端两步已完成**（建表 + RLS + GitHub provider，走 Management API），GitHub Client ID 已修正为 OAuth App 格式 `Ov23liEodzXsXLAZqWGh`，用户在手机端已验证同步联通。
 - 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check` + CSS 花括号配对、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`、镜像打包必须在 `ai/` 目录 `tar -C workspace`。
 
