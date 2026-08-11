@@ -514,6 +514,7 @@ const App = {
                 <div class="greeting-sub">这里是你每日的 AI 内容创作仪表盘。快速查看待办、热点和创作进度。</div>
               </div>
               <div class="greeting-date">${this.renderGreetingDate()}</div>
+              <img class="hero-cat-gif" src="assets/cat-typing.gif" alt="cat typing" width="180" height="180">
             </div>
 
             <div class="today-alerts-panel">

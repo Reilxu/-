@@ -1,7 +1,7 @@
 # 任务检查点 · 小冷个人 AI 工作台
 
 > 本文件是「新会话上下文单点入口」。未来开新会话，只需读取本文件即可恢复全部项目背景。
-> 最后更新：2026-08-11 13:15（**v3.3.48 上线镜像站**：①今日运势加常驻「刷新」按钮+每日自动刷新；②今日页电脑横版模块间距放宽；③减肥日历加「当日琐事」查看面板+日历底色改奶油色与今日日历一致）
+> 最后更新：2026-08-11 13:19（**v3.3.48 已双站上线（镜像 + Vercel）**：①今日运势常驻「刷新」按钮+每日自动刷新；②今日页电脑横版模块间距放宽；③减肥日历「当日琐事」查看面板+奶油底色对齐）
 
 ---
 
@@ -36,7 +36,7 @@
 ### 2.3 部署与版本
 - 当前版本：**v3.3.48**（体验三处优化；缓存版本 `?v=80`）。
 - **镜像站**：`http://191.40.37.48` ✅ **v3.3.48**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，index.html 含 `v3.3.48` / `?v=80`；已实测 `js/app.js` 含 `#fortuneRefreshBtnTop`、`js/weightloss.js` 含 `renderTrivia`、`css/weightloss.css` 含 `#FFF7DC`、`css/neo-brutalism.css` 含桌面间距媒体查询）。
-- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `d106356`，v3.3.47，含减肥记录模块全部代码）；Vercel 已自动构建并上线 **v3.3.47** ✅（已跨网实测 `js/weightloss.js` 含 `getObject`/`Object.keys` 修复代码）。PAT 用后从 remote URL 清除（见第 3 节）。当前 `main` 与 `origin/main` 完全同步（无 ahead/behind）。
+- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `a34cc7c`，v3.3.48，含三项体验优化）；Vercel 已自动构建并上线 **v3.3.48** ✅（已跨网实测 `js/app.js` 含 `fortuneRefreshBtnTop` 刷新按钮、`js/weightloss.js` 含 `renderTrivia`/`wlTrivia` 琐事面板代码）。PAT 用后从 remote URL 清除（见第 3 节）。当前 `main` 与 `origin/main` 完全同步（无 ahead/behind）。
 - **v3.3.47 改动（减肥记录模块）**：①在「自律」分组新增 `weightloss` 模块（图标、导航、注册齐全）；②新增 `js/weightloss.js`（月份选择器、体重日历、今日体重卡、AI 饮食建议、记录琐事、趋势图、AI 报告、首次引导弹窗）；③新增 `css/weightloss.css`（Neo-brutalism 独立样式）；④`store.js` 数据访问改用 `getObject/setObject`（对象型），并从 `SYNC_BUCKETS` 移除三个 weightloss 键（数组型同步循环不兼容对象型，避免云端数组回写覆盖本地对象）；⑤缓存 `?v=77`→`?v=79`，版本串 `v3.3.45`→`v3.3.47`。
 - **v3.3.48 改动（体验三处优化）**：①**今日运势**：原有「重新生成」按钮仅在出错时显示；改为运势卡片标题右侧常驻「↻ 刷新」按钮（`#fortuneRefreshBtnTop`），点击即 `API.generateDailyFortune(profile, true)` 强制让 Deepseek 拉取最新运势；另说明：运势本就按「日」缓存（cacheKey 含日期），跨天打开自动重新生成，即每日自动刷新。②**今日页间距**：`@media (min-width:900px)` 下把 `.today-page` gap 16→36px、`.today-hero` 28px、`.today-stats` 24px、`.hero-left-stack` 20px，电脑横版不再拥挤（移动端不受影响）。③**减肥日历**：新增 `#wlTrivia` 常驻面板，显示所选日期记录的琐事（注射/运动/排便/饮酒/熬夜/备注），点击日历某天即切换；日历面板底色由白 `#fff` 改为奶油 `#FFF7DC`，与今日页日历卡片 `.calendar-card` 底色（neo-brutalism 第 294 行）一致。缓存 `?v=79`→`?v=80`，版本串 `v3.3.47`→`v3.3.48`。
 - **v3.3.46**（仅本地 commit `1c1ef22`，未部署）：补充减肥记录模块产品文档到仓库（与实际代码版本号未对齐，v3.3.47 已含全部功能）。
@@ -142,7 +142,7 @@
 ## 7. 给新会话的 TL;DR
 
 - 这是一个**纯前端的个人 AI 工作台**，已做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前版本 **v3.3.48**：移动端布局已修复、云端优先同步已落实；**镜像站 v3.3.48 已部署** ✅，**Vercel 仍为 v3.3.47（本轮回退未推，需用户重新提供 PAT 推送 v3.3.48 才上线）**。新增「减肥记录」模块（自律分组）：月份选择器 + 体重日历 + 今日体重卡（BMI/进度）+ AI 饮食/报告 + 记录琐事 + 趋势图 + 首启引导；数据本地 `localStorage`（对象型，`getObject/setObject`）。v3.3.48 体验优化：运势常驻刷新按钮 + 今日页桌面间距放宽 + 减肥日历琐事查看面板与奶油底色对齐。
+- 当前版本 **v3.3.48**：移动端布局已修复、云端优先同步已落实；**镜像站 v3.3.48 + Vercel v3.3.48 均已部署** ✅。新增「减肥记录」模块（自律分组）：月份选择器 + 体重日历 + 今日体重卡（BMI/进度）+ AI 饮食/报告 + 记录琐事 + 趋势图 + 首启引导；数据本地 `localStorage`（对象型，`getObject/setObject`）。v3.3.48 体验优化：运势常驻刷新按钮 + 今日页桌面间距放宽 + 减肥日历琐事查看面板与奶油底色对齐。
 - **Supabase 服务端两步已完成**（建表 + RLS + GitHub provider，走 Management API），GitHub Client ID 已修正为 OAuth App 格式 `Ov23liEodzXsXLAZqWGh`，用户在手机端已验证同步联通。
 - 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check` + CSS 花括号配对、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`、镜像打包必须在 `ai/` 目录 `tar -C workspace`。
 
