@@ -36,7 +36,7 @@
 ### 2.3 部署与版本
 - 当前版本：**v3.3.45**（代码改动：移动端布局修复 + 云端优先同步；缓存版本 `?v=77`）。
 - **镜像站**：`http://191.40.37.48` ✅ **v3.3.45**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，index.html 含 `v3.3.45` / `?v=77`）。
-- **GitHub / Vercel**：镜像已修复；Vercel 仍停在 v3.3.44，**待用户提供 GitHub PAT 推送 `main` 触发自动构建**后，用 `?nocache=` 验证 v3.3.45 生效。
+- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `448986b`）；GitHub commit status 显示 Vercel 部署 `state: success`（部署 `4tF12xYdmXvRkdRXQKdTRKETGgg3`），**Vercel 已上线 v3.3.45** ✅。PAT 用后已从 remote URL 清除。
 - **v3.3.45 改动**：①修复移动端 `.app` 的 `grid(240px 1fr)` 在侧边栏隐藏后把主内容挤成约 100px 窄列、左侧大片空白的布局异常（≤900px 塌成单列）；②落实【登录后优先读云端、本地仅作离线缓存】（`store.js` 新增 `refreshFromCloud` + `startCloudSync`/`stopCloudSync`，`app.js` 登录后启动、登出停止）；③缓存 `?v=76`→`?v=77`。
 - **v3.3.44 改动**（历史）：修复 `js/auth.js` 登录回调写死旧域名 `pied-theta.vercel.app` 的 bug（改为 `window.location.origin`）；刷新缓存 `?v=69`→`?v=76`。
 
@@ -99,9 +99,9 @@
 
 | 文件路径 | 说明 |
 | --- | --- |
-| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css?v=76`；版本字符串 `v3.3.44`；脚本统一 `?v=76` |
+| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css?v=77`；版本字符串 `v3.3.45`；脚本统一 `?v=77` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/style.css` | **原站样式，换肤期禁止修改** |
-| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v76）**，所有 Neo-brutalism 视觉与修复补丁在此 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v77）**，所有 Neo-brutalism 视觉与修复补丁在此 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/neo-brutalism-preview.html` | 预览/参考页面，用于比对设计效果 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/app.js` | 主应用逻辑，含页面渲染、弹窗、日历、KPI 等 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/habits.js` | 习惯打卡模块；已注入 `--hc` 变量使阴影跟随图标色 |
@@ -109,7 +109,7 @@
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/supabase-config.js` | Supabase URL + publishable key（已配置） |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/supabase-client.js` | Supabase 通用 CRUD 封装，未配置时回退 localStorage |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/auth.js` | GitHub OAuth 登录态管理 |
-| `/Users/xuleng/WorkBuddy/ai/workspace/js/store.js` | 数据存储层；待改造为 Supabase/localStorage 双后端 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/js/store.js` | 数据存储层；已实现 Supabase/localStorage 双后端（云端优先 + 本地离线缓存） |
 | `/Users/xuleng/WorkBuddy/ai/workspace/supabase/schema.sql` | Supabase 表结构 + RLS 策略 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/progress.md` | 本检查点文件 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/server.js` | 本地静态服务器（开发用） |
@@ -122,7 +122,7 @@
 ## 7. 给新会话的 TL;DR
 
 - 这是一个**纯前端的个人 AI 工作台**，已做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前版本 **v3.3.45**：移动端布局已修复、云端优先同步已落实；**镜像站已部署 v3.3.45**，Vercel 待 PAT 推送。
+- 当前版本 **v3.3.45**：移动端布局已修复、云端优先同步已落实；**镜像站与 Vercel 均已部署 v3.3.45** ✅。
 - **Supabase 服务端两步已完成**（建表 + RLS + GitHub provider，走 Management API），GitHub Client ID 已修正为 OAuth App 格式 `Ov23liEodzXsXLAZqWGh`，用户在手机端已验证同步联通。
 - 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check` + CSS 花括号配对、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`、镜像打包必须在 `ai/` 目录 `tar -C workspace`。
 
