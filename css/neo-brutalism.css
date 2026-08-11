@@ -173,6 +173,8 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 .fortune-quote{background:var(--accent-purple);border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm)}
 .fortune-refresh-btn{background:var(--accent-yellow) !important;border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm);font-weight:900;text-transform:uppercase}
 .fortune-refresh-btn:active{transform:translate(2px,2px);box-shadow:none}
+.fortune-refresh-top{margin-left:auto;padding:7px 14px;font-size:13px;cursor:pointer;color:#000;flex:0 0 auto}
+.fortune-refresh-top:disabled{opacity:.6;cursor:default}
 .stat-card{border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-md) !important;transition:transform .12s linear,box-shadow .12s linear}
 .today-stats .stat-card:nth-child(1){background:var(--accent-yellow);transform:rotate(-1.5deg)}
 .today-stats .stat-card:nth-child(2){background:var(--accent-purple);transform:rotate(1deg)}
@@ -327,6 +329,16 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 
 /* 13. 模块间距统一 16px，与图例一致；去掉主内容区外框，让卡片直接漂浮在奶油底上 */
 .app,.main-content,.page-container,.today-page,.today-hero,.hero-left-stack,.today-stats,.today-calendar-todo-row{gap:16px !important}
+
+/* 电脑横版：今日页面模块间垂直间距放大，避免拥挤 */
+@media (min-width: 900px){
+  .today-page{gap:36px !important}
+  .today-hero{gap:28px !important}
+  .today-stats{gap:24px !important}
+  .hero-left-stack{gap:20px !important}
+  .today-calendar-todo-row{gap:28px !important}
+  .today-fortune-panel{padding:22px 22px 18px !important}
+}
 .app{padding:16px !important}
 .main-content{
   background:transparent !important;

@@ -36,7 +36,7 @@
 /* ---------- 日历 ---------- */
 .wl-cal {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
-  background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md); padding: 12px;
+  background: #FFF7DC; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md); padding: 12px;
 }
 .wl-cal-week {
   text-align: center; font-weight: 900; font-size: 13px; padding: 4px 0;
@@ -60,6 +60,18 @@
   position: absolute; right: 5px; bottom: 5px; width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent-purple); border: 1.5px solid #000;
 }
+
+/* ---------- 当日琐事查看 ---------- */
+.wl-trivia {
+  background: var(--bg-card); border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md);
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.wl-trivia-head { font-weight: 900; font-size: 15px; margin-bottom: 10px; }
+.wl-trivia-empty { color: rgba(0,0,0,.5); font-weight: 700; }
+.wl-trivia-list { display: flex; flex-direction: column; gap: 8px; }
+.wl-trivia-item { display: flex; gap: 10px; align-items: baseline; font-weight: 700; }
+.wl-trivia-label { flex: 0 0 auto; min-width: 104px; font-weight: 900; }
+.wl-trivia-val { color: rgba(0,0,0,.78); line-height: 1.5; }
 
 /* ---------- 全部记录列表 ---------- */
 .wl-all-list { background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md); padding: 8px; }

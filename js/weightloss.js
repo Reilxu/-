@@ -80,6 +80,7 @@
       '<div class="wl-module">' +
         '<div class="wl-monthbar" id="wlMonthBar"></div>' +
         '<div class="wl-cal-wrap" id="wlCalWrap"></div>' +
+        '<div class="wl-trivia" id="wlTrivia"></div>' +
         '<div class="wl-today-card" id="wlTodayCard"></div>' +
         '<div class="wl-quick" id="wlQuick"></div>' +
         '<div class="wl-trend" id="wlTrend"></div>' +
@@ -97,6 +98,7 @@
   function renderViews() {
     renderMonthBar();
     renderCalWrap();
+    renderTrivia();
     renderTodayCard();
     renderQuick();
     renderTrend();
@@ -177,6 +179,33 @@
     if (t.stayedUp) arr.push('熬夜');
     if (t.note && t.note.trim()) arr.push('备注');
     return arr.join(' · ');
+  }
+
+  // 查看所选日期记录的琐事（日历下方常驻面板）
+  function renderTrivia() {
+    var box = root.querySelector('#wlTrivia');
+    if (!box) return;
+    var ds = state.selected;
+    var rec = getRecord(ds);
+    var isToday = ds === todayStr();
+    var dateLabel = isToday ? '今日琐事' : (ds.slice(5).replace('-', '月') + '日琐事');
+    if (!rec || !rec.trivia || !hasTrivia(rec)) {
+      box.innerHTML = '<div class="wl-trivia-head">' + esc(dateLabel) + '</div>' +
+        '<div class="wl-trivia-empty">这一天没有记录琐事</div>';
+      return;
+    }
+    var t = rec.trivia;
+    var rows = [];
+    if (t.injection) rows.push(['💉 注射减重针', (t.injectionName ? t.injectionName : '已注射') + (t.dose ? ' · ' + t.dose : '')]);
+    if (t.exercised) rows.push(['🏃 运动', (t.exerciseType ? t.exerciseType : '有运动') + (t.exerciseDuration ? ' · ' + t.exerciseDuration + ' 分钟' : '')]);
+    if (t.bowel) rows.push(['🚽 排便', '正常']);
+    if (t.alcohol) rows.push(['🍺 饮酒', '有']);
+    if (t.stayedUp) rows.push(['🌙 熬夜', '有']);
+    if (t.note && t.note.trim()) rows.push(['📝 备注', t.note]);
+    box.innerHTML = '<div class="wl-trivia-head">' + esc(dateLabel) + '</div>' +
+      '<div class="wl-trivia-list">' + rows.map(function (r) {
+        return '<div class="wl-trivia-item"><span class="wl-trivia-label">' + r[0] + '</span><span class="wl-trivia-val">' + esc(r[1]) + '</span></div>';
+      }).join('') + '</div>';
   }
 
   function renderTodayCard() {

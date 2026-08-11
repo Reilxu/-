@@ -682,6 +682,7 @@ const App = {
               <div class="fortune-stars" id="fortuneStars">${this.renderFortuneStars(0)}</div>
             </div>
           </div>
+          <button class="fortune-refresh-btn fortune-refresh-top" id="fortuneRefreshBtnTop" title="用 Deepseek 重新测算今日运势">↻ 刷新</button>
         </div>
         <div class="fortune-body">
           <div class="fortune-loading" id="fortuneLoading">正在请 Deepseek 测算今日运势…</div>
@@ -780,14 +781,16 @@ const App = {
       if (quoteEl) quoteEl.textContent = data.quote || '';
     };
 
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => {
-        if (loadingEl) loadingEl.style.display = 'block';
-        if (contentEl) contentEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'none';
-        this._fetchFortune(true).then(showContent).catch((e) => showError(e?.message || '运势生成失败'));
-      });
-    }
+    const doRefresh = () => {
+      if (loadingEl) loadingEl.style.display = 'block';
+      if (contentEl) contentEl.style.display = 'none';
+      if (errorEl) errorEl.style.display = 'none';
+      this._fetchFortune(true).then(showContent).catch((e) => showError(e?.message || '运势生成失败'));
+    };
+
+    if (refreshBtn) refreshBtn.addEventListener('click', doRefresh);
+    const topBtn = document.getElementById('fortuneRefreshBtnTop');
+    if (topBtn) topBtn.addEventListener('click', doRefresh);
 
     try {
       const data = await this._fetchFortune(false);
