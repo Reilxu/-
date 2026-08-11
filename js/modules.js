@@ -265,6 +265,16 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.52',
+      content: `v3.3.52更新。
+- 糖罐视觉替换为 PNG：用户给出透明底糖罐图（1254×1254 RGBA），复制到 assets/candy-jar.png
+- js/habits.js 的 renderGlassJar 删除原 SVG 绘制（jarGlassGrad / jarClip / jar-body path），改为 <img class="jar-png" src="assets/candy-jar.png?v=84">；糖果球 .jar-candy-pile 保留，绝对定位覆盖在糖罐图片的玻璃区域
+- neo-brutalism.css 新增第 17 节：.jar-glass 去圆角/overflow、max-width 360px；.jar-png 100% 宽；.jar-candy-pile 用百分比定位（left/right 20%、bottom 13%、top 40%），让糖果球落在新糖罐的玻璃肚内
+- 缓存版本 ?v=83 → ?v=84`,
+      impact: '糖罐从 CSS/SVG 绘制改为用户提供的卡通 PNG，与扭蛋机/图标风格统一',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.51',
       content: `v3.3.51更新。
 - 减肥记录（体重档案/每日记录/AI报告）纳入 Supabase 云端同步：新增 OBJECT_BUCKETS 标记对象型 bucket，store.js 的 _pushBucket / syncAfterLogin / pushAllToCloud / pullFromCloud / refreshFromCloud 均增加对象型分支（整对象作为一个 user_items 行，localStorage 仅作离线缓存）

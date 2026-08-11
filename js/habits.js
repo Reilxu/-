@@ -9,7 +9,7 @@
   var esc = function (s) { return (window.App && App.esc) ? App.esc(s) : String(s == null ? '' : s); };
 
   // ---------- 习惯图标库（切分后的 PNG 图标）----------
-  var ICON_ASSET_VERSION = '82';
+  var ICON_ASSET_VERSION = '84';
   function habitIconSvg(size) {
     return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>';
   }
@@ -447,19 +447,7 @@
     var overflowTag = overflow > 0 ? '<div class="jar-overflow">+' + overflow + '</div>' : '';
     return '<div class="jar-glass" data-act="jar-shake">' +
       '<div class="jar-shake-wrap">' +
-        '<svg class="jar-svg" viewBox="0 0 260 180">' +
-          '<defs>' +
-            '<linearGradient id="jarGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
-              '<stop offset="0%" style="stop-color:rgba(255,255,255,0.55)"/>' +
-              '<stop offset="50%" style="stop-color:rgba(230,240,220,0.25)"/>' +
-              '<stop offset="100%" style="stop-color:rgba(200,210,190,0.35)"/>' +
-            '</linearGradient>' +
-            '<clipPath id="jarClip"><path d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z"/></clipPath>' +
-          '</defs>' +
-          '<rect x="0" y="0" width="260" height="180" fill="transparent"/>' +
-          '<path class="jar-body" d="M30,30 Q30,10 50,10 L210,10 Q230,10 230,30 L230,140 Q230,170 190,170 L70,170 Q30,170 30,140 Z" fill="url(#jarGlassGrad)" stroke="rgba(180,190,170,0.5)" stroke-width="2"/>' +
-          '<rect x="30" y="6" width="200" height="8" rx="4" fill="rgba(160,170,150,0.35)"/>' +
-        '</svg>' +
+        '<img class="jar-png" src="assets/candy-jar.png?v=' + ICON_ASSET_VERSION + '" alt="糖罐">' +
         '<div class="jar-candy-pile">' + balls.join('') + '</div>' +
         overflowTag +
       '</div>' +
