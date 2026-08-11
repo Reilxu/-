@@ -28,9 +28,14 @@ const Store = {
     candyBalls: 'xl_candy_balls',
     rewardItems: 'xl_reward_items',
     redemptions: 'xl_redemptions',
+    weightlossProfile: 'xl_weightloss_profile',
+    weightlossRecords: 'xl_weightloss_records',
+    weightlossReports: 'xl_weightloss_reports',
   },
 
   // 需要同步到云端的 bucket（排除纯缓存类 aiNews / hotTopics）
+  // 注意：减肥记录为「对象型」数据（按日期/作用域聚合），与下方数组型同步循环不兼容，
+  // 故不入 SYNC_BUCKETS，避免云端数组数据回写覆盖本地对象。其云端同步为 P3 待办。
   SYNC_BUCKETS: [
     'xl_today', 'xl_content', 'xl_topics', 'xl_materials',
     'xl_inbox', 'xl_links', 'xl_ai_chat', 'xl_decomp',

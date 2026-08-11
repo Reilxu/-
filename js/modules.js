@@ -172,6 +172,22 @@ const ModuleConfig = {
         ],
       },
     },
+    weightloss: {
+      key: 'weightloss',
+      name: '减肥记录',
+      icon: 'weightloss',
+      help: {
+        title: '减肥记录',
+        sections: [
+          { label: '这个功能做什么', text: '极简的每日体重管理：早晨一键打卡体重、查看当日 AI 饮食建议、睡前补记运动/注射减重针等琐事，并自动生成趋势图与 AI 体重解读报告。所有数据保存在本地，登录后自动同步到云端，多端可用。' },
+          { label: '怎么操作', text: '点击日历中的某一天可补录/编辑当天体重与琐事；点击「今日打卡」记录当天体重；点击「今日食谱」让 AI 生成一日三餐建议；点击「记录琐事」勾选运动/注射/排便等；点击「数据分析」生成 AI 体重解读报告。' },
+          { label: '首次使用', text: '第一次进入会引导填写基础信息：性别、身高、出生年份、初始体重、目标体重、饮食口味、运动习惯。这些信息用于计算 BMI、目标进度与 AI 建议，仅保存在本地。' },
+          { label: '完成后会发生什么', text: '每次打卡/记录即时保存，日历对应日期显示体重数字，有琐事记录的日期显示标记点；本月趋势图随数据自动更新。登录状态下数据随云端同步，换设备登录自动拉取。' },
+          { label: '如何撤销', text: '点击某天可重新编辑覆盖；饮食建议与报告可重新生成；数据均可在「设置与数据」中导出备份。' },
+          { label: '出错怎么办', text: 'AI 功能需要配置 Deepseek API Key。若生成失败，页面会显示「生成失败，点击重试」。数据保存在本地，异常可刷新或导入备份。' },
+        ],
+      },
+    },
   },
 
   // 数据看板数据维度定义
@@ -198,13 +214,13 @@ const ModuleConfig = {
     { section: '核心', items: ['today', 'dashboard'] },
     { section: '创作', items: ['topics', 'content', 'decomp'] },
     { section: '资讯', items: ['hot'] },
-    { section: '自律', items: ['habits'] },
+    { section: '自律', items: ['habits', 'weightloss'] },
     { section: '系统', items: ['settings'] },
   ],
 
   // 移动端底部导航（横版可滑动）
   // 注：AI 帮手已改为全局右下角悬浮按钮，不再出现在主导航中
-  mobileNav: ['today', 'dashboard', 'topics', 'content', 'decomp', 'hot', 'habits', 'settings'],
+  mobileNav: ['today', 'dashboard', 'topics', 'content', 'decomp', 'hot', 'habits', 'weightloss', 'settings'],
 
   // 内容状态
   contentStatus: {

@@ -97,7 +97,7 @@ const App = {
     const addBtn = document.getElementById('topbarAddBtn');
     const addBtnText = addBtn?.querySelector('span');
     if (addBtn) {
-      if (module === 'today') {
+      if (module === 'today' || module === 'weightloss') {
         addBtn.style.display = 'none';
       } else {
         addBtn.style.display = 'flex';
@@ -123,6 +123,8 @@ const App = {
 
     if (module === 'habits') {
       if (window.HabitsModule) window.HabitsModule.render(container);
+    } else if (module === 'weightloss') {
+      if (window.WeightLossModule) window.WeightLossModule.render(container);
     } else if (renderMap[module]) {
       container.innerHTML = renderMap[module]();
       this.bindModuleEvents(module);

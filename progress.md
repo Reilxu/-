@@ -1,7 +1,7 @@
 # 任务检查点 · 小冷个人 AI 工作台
 
 > 本文件是「新会话上下文单点入口」。未来开新会话，只需读取本文件即可恢复全部项目背景。
-> 最后更新：2026-08-11 11:45（v3.3.45 已修复移动端布局 + 落实云端优先同步；**镜像站已部署 v3.3.45**，Vercel 待 GitHub PAT 推送）
+> 最后更新：2026-08-11 12:39（**减肥记录模块已在自律分组上线**；**镜像站已部署 v3.3.47**，Vercel 待 GitHub PAT 推送）
 
 ---
 
@@ -34,11 +34,13 @@
 - **今日页去掉 `.main-content` 外框**，各模块直接漂浮在奶油底上；模块间距统一为 **16px**（与图例一致）。
 
 ### 2.3 部署与版本
-- 当前版本：**v3.3.45**（代码改动：移动端布局修复 + 云端优先同步；缓存版本 `?v=77`）。
-- **镜像站**：`http://191.40.37.48` ✅ **v3.3.45**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，index.html 含 `v3.3.45` / `?v=77`）。
-- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `448986b`）；GitHub commit status 显示 Vercel 部署 `state: success`（部署 `4tF12xYdmXvRkdRXQKdTRKETGgg3`），**Vercel 已上线 v3.3.45** ✅。PAT 用后已从 remote URL 清除。
-- **v3.3.45 改动**：①修复移动端 `.app` 的 `grid(240px 1fr)` 在侧边栏隐藏后把主内容挤成约 100px 窄列、左侧大片空白的布局异常（≤900px 塌成单列）；②落实【登录后优先读云端、本地仅作离线缓存】（`store.js` 新增 `refreshFromCloud` + `startCloudSync`/`stopCloudSync`，`app.js` 登录后启动、登出停止）；③缓存 `?v=76`→`?v=77`。
-- **v3.3.44 改动**（历史）：修复 `js/auth.js` 登录回调写死旧域名 `pied-theta.vercel.app` 的 bug（改为 `window.location.origin`）；刷新缓存 `?v=69`→`?v=76`。
+- 当前版本：**v3.3.47**（新增「减肥记录」模块；缓存版本 `?v=79`）。
+- **镜像站**：`http://191.40.37.48` ✅ **v3.3.47**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，index.html 含 `v3.3.47` / `?v=79`；已实测 `js/weightloss.js`、`js/store.js`、`js/app.js`、`js/modules.js` 新代码上线）。
+- **GitHub / Vercel**：`main` 已用临时 PAT 推送（commit `448986b`，v3.3.45）；但 **v3.3.46/v3.3.47（减肥记录模块）尚未 commit / 未推 Vercel**，需用户重新提供 PAT 后推送才会上线 Vercel。PAT 用后从 remote URL 清除（见第 3 节）。
+- **v3.3.47 改动（减肥记录模块）**：①在「自律」分组新增 `weightloss` 模块（图标、导航、注册齐全）；②新增 `js/weightloss.js`（月份选择器、体重日历、今日体重卡、AI 饮食建议、记录琐事、趋势图、AI 报告、首次引导弹窗）；③新增 `css/weightloss.css`（Neo-brutalism 独立样式）；④`store.js` 数据访问改用 `getObject/setObject`（对象型），并从 `SYNC_BUCKETS` 移除三个 weightloss 键（数组型同步循环不兼容对象型，避免云端数组回写覆盖本地对象）；⑤缓存 `?v=77`→`?v=79`，版本串 `v3.3.45`→`v3.3.47`。
+- **v3.3.46**（仅本地 commit `1c1ef22`，未部署）：补充减肥记录模块产品文档到仓库（与实际代码版本号未对齐，v3.3.47 已含全部功能）。
+- **v3.3.45 改动**（历史）：①修复移动端 `.app` 布局异常；②落实云端优先同步；③缓存 `?v=76`→`?v=77`。
+- **v3.3.44 改动**（历史）：修复 `js/auth.js` 登录回调写死旧域名；缓存 `?v=69`→`?v=76`。
 
 ### 2.4 Supabase 前端集成（已完成）
 - 已把 Supabase URL 与 publishable key 填入 `js/supabase-config.js`（仅 anon key）。
@@ -48,6 +50,21 @@
 - `js/app.js`：`initAuth()` 全流程已接好——渲染登录按钮/头像、`getCurrentUser` 恢复登录态、`onAuthChange` 切换云端态、`Store.setCloudUser`、登录后 `syncAfterLogin`、登出清空；顶栏 `authArea`（id=`authArea`）+ 底部导航均有登录/退出入口。
 - **【登录后优先读云端、本地仅作离线缓存】已落实（v3.3.45）**：`store.js` 新增 `refreshFromCloud()`（把云端数据拉回本地缓存作离线副本；拉取失败自动保留本地）、`startCloudSync(rerender)` / `stopCloudSync()`（登录后每 20s 用云端覆盖本地缓存并触发重渲染，断网自动回退本地；登出时停止）。`app.js` 在 `_onSignedIn` 后调用 `Store.startCloudSync(...)`、`_onSignedOut` 中调用 `Store.stopCloudSync()`。由于 UI 读取始终走同步的 `get()`（本地缓存），本地缓存被持续镜像成「云端的最新值」，因此登录后「你看到的数据 = 云端数据」，断网或另一端写入后定时刷新即可看到。
 - **结论**：前端“登录 → 同步 → 回退”链路已 100% 就绪，服务端两步配置（建表 + 启用 GitHub provider）亦已完成，全链路打通。
+
+### 2.5 减肥记录模块（v3.3.47 新增，自律分组）
+- **入口**：侧边栏「自律」分组第二项「减肥记录」（图标为体重秤）；移动端底部导航含 `weightloss`。`app.js` 的 `navigate` 已挂 `weightloss` 分支 → `window.WeightLossModule.render(container)`。
+- **文件**：`js/weightloss.js`（逻辑，IIFE 暴露 `window.WeightLossModule`）、`css/weightloss.css`（独立 Neo-brutalism 样式，不改动 `style.css`）。
+- **功能点（按 PRD 完整实现）**：
+  1. **首次引导**：`ensureProfile` 检测 localStorage 无档案则弹出「设置基础信息」（性别/身高/出生年份/初始体重/目标体重/口味/运动习惯），保存后自动用初始体重作为今日打卡。
+  2. **月份选择器**：`wl-monthbar` 上一月/下一月 + 「全部记录」切换；「全部记录」视图按日期倒序列出所有体重打卡。
+  3. **体重日历**：`wl-cal` 7 列网格，今日红色高亮、选中描黑边、格内显示体重数字、有琐事画小圆点。
+  4. **今日体重卡**：打卡按钮、当前体重、本月变化、本月目标、BMI（含偏瘦/正常/超重/肥胖状态色）、目标进度（进度条颜色随完成度变化）、还差多少/已达标提示。
+  5. **AI 饮食建议**：`showDietModal` → `API.aiChat`（Deepseek），输出 JSON 三餐 + 加餐热量；同日缓存（避免重复生成），支持重新生成。
+  6. **记录琐事**：注射减重针（药名/剂量）、运动（类型/时长）、排便、饮酒、熬夜、备注。
+  7. **趋势图**：`trendSVG` 纯 SVG 折线（体重实线 + 目标虚线 + Y 轴刻度 + 数据点 tooltip），<2 条记录显示空态。
+  8. **AI 报告**：`showReportModal` → `API.aiChat`，按「本月 / 全部」作用域缓存，需 ≥2 条记录。
+- **数据层**：档案 / 记录 / 报告均为**对象型**（记录按 `YYYY-MM-DD` 聚合，报告按作用域 key）。**必须用 `Store.getObject/setObject`**（不能用 `get/set` 数组型：空键返回 `[]` 为 truthy，会让 `ensureProfile` 误判“已有档案”跳过首启弹窗——这是 v3.3.47 修掉的核心 bug）。
+- **云端同步现状（重要）**：三个 weightloss 键**已移出 `SYNC_BUCKETS`**，因其为对象型，与数组型同步循环（`_pushBucket`/`upsertAll`）不兼容——若留在 `SYNC_BUCKETS`，登录后 `pullFromCloud` 可能把云端数组回写覆盖本地对象，造成数据损坏。因此**当前减肥记录仅本地 `localStorage` 持久化，不跨设备同步**（P3 待办：为对象型 bucket 单独接云端同步）。
 
 ---
 
@@ -99,12 +116,14 @@
 
 | 文件路径 | 说明 |
 | --- | --- |
-| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css?v=77`；版本字符串 `v3.3.45`；脚本统一 `?v=77` |
+| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css` → `weightloss.css?v=79`；版本字符串 `v3.3.47`；脚本统一 `?v=79` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/style.css` | **原站样式，换肤期禁止修改** |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v77）**，所有 Neo-brutalism 视觉与修复补丁在此 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/neo-brutalism-preview.html` | 预览/参考页面，用于比对设计效果 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/app.js` | 主应用逻辑，含页面渲染、弹窗、日历、KPI 等 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/habits.js` | 习惯打卡模块；已注入 `--hc` 变量使阴影跟随图标色 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/js/weightloss.js` | **减肥记录模块**（v3.3.47 新增）；暴露 `window.WeightLossModule`；对象型数据走 `getObject/setObject` |
+| `/Users/xuleng/WorkBuddy/ai/workspace/css/weightloss.css` | **减肥记录模块样式**（v3.3.47 新增），独立 Neo-brutalism 风格，不改动 `style.css` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/modules.js` | 模块注册、导航顺序、更新日志 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/supabase-config.js` | Supabase URL + publishable key（已配置） |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/supabase-client.js` | Supabase 通用 CRUD 封装，未配置时回退 localStorage |
@@ -122,7 +141,7 @@
 ## 7. 给新会话的 TL;DR
 
 - 这是一个**纯前端的个人 AI 工作台**，已做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前版本 **v3.3.45**：移动端布局已修复、云端优先同步已落实；**镜像站与 Vercel 均已部署 v3.3.45** ✅。
+- 当前版本 **v3.3.47**：移动端布局已修复、云端优先同步已落实；**镜像站已部署 v3.3.47** ✅，**Vercel 仍为 v3.3.45（减肥记录模块待 PAT 推送上线）**。新增「减肥记录」模块（自律分组）：月份选择器 + 体重日历 + 今日体重卡（BMI/进度）+ AI 饮食/报告 + 记录琐事 + 趋势图 + 首启引导；数据本地 `localStorage`（对象型，`getObject/setObject`）。
 - **Supabase 服务端两步已完成**（建表 + RLS + GitHub provider，走 Management API），GitHub Client ID 已修正为 OAuth App 格式 `Ov23liEodzXsXLAZqWGh`，用户在手机端已验证同步联通。
 - 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check` + CSS 花括号配对、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`、镜像打包必须在 `ai/` 目录 `tar -C workspace`。
 

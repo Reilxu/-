@@ -1,0 +1,199 @@
+/* ==========================================================================
+   减肥记录模块 · Neo-brutalism 风格
+   独立样式文件，沿用工作台主题令牌（奶油底 / 黑边硬阴影 / 直角 / 红黄紫）。
+   加载顺序：在 neo-brutalism.css 之后引入（index.html）。
+   ========================================================================== */
+
+/* ---------- 容器 ---------- */
+.wl-module { padding: 4px 2px 28px; max-width: 920px; margin: 0 auto; }
+
+/* ---------- 月份选择器 ---------- */
+.wl-monthbar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-card); border: 4px solid #000; border-radius: 0;
+  box-shadow: var(--shadow-sm); padding: 10px 12px; margin-bottom: 16px;
+}
+.wl-month-label { flex: 1; text-align: center; font-weight: 900; font-size: 18px; letter-spacing: -.01em; }
+.wl-nav-btn {
+  width: 38px; height: 38px; flex: 0 0 auto; font-size: 22px; font-weight: 900; line-height: 1;
+  background: var(--accent-yellow); border: 3px solid #000; border-radius: 0; cursor: pointer;
+  box-shadow: 3px 3px 0 0 #000; color: #000;
+}
+.wl-nav-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 #000; }
+.wl-all-btn {
+  flex: 0 0 auto; padding: 8px 12px; font-weight: 800; font-size: 13px; cursor: pointer;
+  background: #fff; border: 3px solid #000; border-radius: 0; box-shadow: 3px 3px 0 0 #000; color: #000;
+}
+.wl-all-btn.active { background: var(--accent-purple); }
+.wl-all-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 #000; }
+
+/* ---------- 通用卡片 ---------- */
+.wl-card {
+  background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md);
+  padding: 16px; margin-bottom: 16px;
+}
+
+/* ---------- 日历 ---------- */
+.wl-cal {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+  background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md); padding: 12px;
+}
+.wl-cal-week {
+  text-align: center; font-weight: 900; font-size: 13px; padding: 4px 0;
+  color: rgba(0,0,0,.55);
+}
+.wl-cal-cell {
+  position: relative; min-height: 56px; background: var(--bg-card); border: 2px solid #000; border-radius: 0;
+  padding: 6px 4px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: transform .08s;
+}
+.wl-cal-cell:hover { transform: translateY(-2px); }
+.wl-cal-empty { background: transparent; border: none; cursor: default; box-shadow: none; }
+.wl-cal-num { font-weight: 800; font-size: 14px; }
+.wl-cal-weight { font-weight: 900; font-size: 13px; color: var(--accent); }
+.wl-cal-today .wl-cal-num {
+  background: var(--accent); color: #000; width: 26px; height: 26px; line-height: 26px;
+  border-radius: 50%; border: 2px solid #000;
+}
+.wl-cal-selected { outline: 4px solid var(--accent-yellow); outline-offset: -4px; background: var(--bg-muted); }
+.wl-cal-dot {
+  position: absolute; right: 5px; bottom: 5px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-purple); border: 1.5px solid #000;
+}
+
+/* ---------- 全部记录列表 ---------- */
+.wl-all-list { background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-md); padding: 8px; }
+.wl-all-row {
+  display: grid; grid-template-columns: 70px 80px 1fr; gap: 8px; align-items: center;
+  padding: 10px 8px; border-bottom: 2px solid rgba(0,0,0,.12); cursor: pointer; font-weight: 700;
+}
+.wl-all-row:last-child { border-bottom: none; }
+.wl-all-row:hover { background: var(--bg-muted); }
+.wl-all-date { font-weight: 900; }
+.wl-all-weight { color: var(--accent); font-weight: 900; }
+.wl-all-tri { color: rgba(0,0,0,.6); font-size: 13px; }
+.wl-mute { color: rgba(0,0,0,.4); }
+
+/* ---------- 今日体重卡 ---------- */
+.wl-today-inner { padding: 18px; }
+.wl-today-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.wl-today-title { font-weight: 900; font-size: 18px; }
+.wl-today-weight {
+  font-weight: 900; font-size: 52px; line-height: 1; color: #000; margin: 4px 0 14px;
+}
+.wl-unit { font-size: 18px; font-weight: 800; margin-left: 6px; color: rgba(0,0,0,.6); }
+.wl-today-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.wl-metric { background: var(--bg-muted); border: 2px solid #000; border-radius: 0; padding: 8px 10px; }
+.wl-metric-label { font-size: 12px; font-weight: 700; color: rgba(0,0,0,.6); margin-bottom: 3px; }
+.wl-metric-val { font-size: 15px; font-weight: 900; }
+.wl-reached { color: var(--accent-green); }
+.wl-bmi-green { color: var(--accent-green); }
+.wl-bmi-blue { color: #2b7fb8; }
+.wl-bmi-warn { color: #E08A00; }
+.wl-bmi-danger { color: var(--danger); }
+.wl-bmi-mute { color: rgba(0,0,0,.5); }
+
+.wl-progress { height: 14px; background: #fff; border: 3px solid #000; border-radius: 0; overflow: hidden; }
+.wl-progress-bar { height: 100%; transition: width .3s; }
+
+.wl-checkin {
+  padding: 10px 18px; font-weight: 900; font-size: 15px; cursor: pointer; color: #000;
+  background: var(--accent); border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 0 #000;
+  text-transform: none;
+}
+.wl-checkin:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 #000; }
+.wl-checkin.done { background: rgba(0,0,0,.12); color: rgba(0,0,0,.55); }
+
+/* ---------- 快捷功能区 ---------- */
+.wl-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.wl-quick-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 8px;
+  font-weight: 900; font-size: 14px; cursor: pointer; color: #000;
+  background: #fff; border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-sm);
+}
+.wl-quick-btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 #000; }
+.wl-q-ico { font-size: 26px; }
+.wl-q-diet { background: #FFE9B0; }
+.wl-q-report { background: var(--accent-purple); }
+.wl-q-trivia { background: var(--accent-blue); }
+
+/* ---------- 趋势图 ---------- */
+.wl-trend-inner { padding: 16px; }
+.wl-trend-title { font-weight: 900; font-size: 16px; margin-bottom: 10px; }
+.wl-trend-svg { width: 100%; height: auto; display: block; border: 2px solid #000; background: #fff; }
+
+/* ---------- 空态 ---------- */
+.wl-empty {
+  text-align: center; padding: 24px 12px; color: rgba(0,0,0,.55); font-weight: 700;
+  background: var(--bg-muted); border: 2px dashed #000; border-radius: 0;
+}
+.wl-trend-empty { margin-top: 4px; }
+
+/* ---------- 弹窗 ---------- */
+.wl-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.wl-modal {
+  width: 100%; max-width: 460px; max-height: 88vh; overflow: auto;
+  background: var(--bg-card); border: 4px solid #000; border-radius: 0; box-shadow: var(--shadow-lg);
+}
+.wl-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 4px solid #000; background: var(--accent-yellow);
+  position: sticky; top: 0; z-index: 2;
+}
+.wl-modal-title { font-weight: 900; font-size: 17px; }
+.wl-modal-close {
+  width: 32px; height: 32px; font-size: 22px; font-weight: 900; line-height: 1; cursor: pointer;
+  background: #fff; border: 3px solid #000; border-radius: 0; color: #000;
+}
+.wl-modal-close:active { transform: translate(2px, 2px); }
+.wl-modal-body { padding: 16px; }
+
+/* ---------- 表单 ---------- */
+.wl-form { display: flex; flex-direction: column; gap: 14px; }
+.wl-form-tip { font-weight: 700; color: rgba(0,0,0,.7); }
+.wl-field { display: flex; flex-direction: column; gap: 6px; }
+.wl-field label { font-weight: 800; font-size: 13px; }
+.wl-input {
+  width: 100%; padding: 10px 12px; font-weight: 700; font-size: 15px; color: #000;
+  background: #fff; border: 3px solid #000; border-radius: 0; font-family: var(--neo-font);
+}
+.wl-input:focus { outline: none; background: #FFFDEB; border-color: var(--accent); }
+.wl-input-sm { width: auto; flex: 1; min-width: 0; padding: 6px 8px; font-size: 13px; }
+.wl-inline { display: inline-flex; gap: 6px; margin-left: 8px; align-items: center; }
+
+.wl-check-row { display: flex; flex-direction: column; gap: 10px; }
+.wl-check { display: flex; align-items: center; font-weight: 700; gap: 6px; flex-wrap: wrap; cursor: pointer; }
+.wl-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.wl-btn-primary {
+  margin-top: 4px; padding: 12px; font-weight: 900; font-size: 15px; cursor: pointer; color: #000;
+  background: var(--accent); border: 3px solid #000; border-radius: 0; box-shadow: var(--shadow-sm);
+}
+.wl-btn-primary:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 #000; }
+
+/* ---------- 饮食建议 ---------- */
+.wl-diet-loading { text-align: center; padding: 30px; font-weight: 800; color: rgba(0,0,0,.6); }
+.wl-diet-total { font-weight: 800; margin-bottom: 12px; padding: 10px; background: var(--bg-muted); border: 2px solid #000; }
+.wl-diet-total b { font-size: 20px; color: var(--accent); }
+.wl-meal { border: 3px solid #000; border-radius: 0; padding: 12px; margin-bottom: 10px; background: #fff; }
+.wl-meal-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.wl-meal-type { font-weight: 900; font-size: 15px; background: var(--accent-yellow); border: 2px solid #000; padding: 1px 8px; }
+.wl-meal-cal { font-weight: 900; color: var(--accent); }
+.wl-meal-name { font-weight: 800; margin-bottom: 2px; }
+.wl-meal-items { font-weight: 600; color: rgba(0,0,0,.7); font-size: 14px; }
+
+.wl-report-text { font-weight: 600; line-height: 1.7; white-space: normal; }
+.wl-report-text br { content: ''; }
+
+/* ---------- 移动端 ---------- */
+@media (max-width: 900px) {
+  .wl-module { padding: 4px 8px 28px; }
+  .wl-cal-cell { min-height: 48px; }
+  .wl-cal { gap: 5px; padding: 8px; }
+  .wl-today-weight { font-size: 44px; }
+  .wl-quick-grid { gap: 8px; }
+  .wl-quick-btn { padding: 12px 6px; font-size: 13px; }
+}
