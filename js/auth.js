@@ -12,9 +12,10 @@
         alert('Supabase 未配置，无法登录');
         return;
       }
-      var redirectTo = (typeof window !== 'undefined' && window.location)
-      ? (window.location.origin + '/')
-      : 'https://pied-theta.vercel.app/';
+      // 登录成功后回调到当前站点来源（镜像 191.40.37.48 与 Vercel 都正确）
+      var redirectTo = (typeof window !== 'undefined' && window.location && window.location.origin)
+        ? (window.location.origin + '/')
+        : 'https://ai-workbench-tan.vercel.app/';
     var { error } = await window.SB.auth.signInWithOAuth({
         provider: 'github',
         options: { redirectTo: redirectTo }
