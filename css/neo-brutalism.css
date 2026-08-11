@@ -169,21 +169,19 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
   border:4px solid #000 !important;border-radius:0 !important;
   box-shadow:12px 12px 0 0 #C4B5FD !important;
 }
-.today-fortune-panel::before{
-  content:"";position:absolute;left:0;right:0;top:0;height:10px;
-  background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px);
-  border-bottom:3px solid #000;
-}
-.fortune-header{margin-top:8px}
 .fortune-chip,.fortune-tip{background:#fff;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
 .fortune-quote{background:var(--accent-purple);border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm)}
 .fortune-refresh-btn{background:var(--accent-yellow) !important;border:3px solid #000;border-radius:0;box-shadow:var(--shadow-sm);font-weight:900;text-transform:uppercase}
 .fortune-refresh-btn:active{transform:translate(2px,2px);box-shadow:none}
 .stat-card{border:4px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-md) !important;transition:transform .12s linear,box-shadow .12s linear}
-.today-stats .stat-card:nth-child(1){background:var(--accent-yellow)}
-.today-stats .stat-card:nth-child(2){background:var(--accent-purple)}
-.today-stats .stat-card:nth-child(3){background:var(--accent)}
-.today-stats .stat-card:nth-child(4){background:#fff}
+.today-stats .stat-card:nth-child(1){background:var(--accent-yellow);transform:rotate(-1.5deg)}
+.today-stats .stat-card:nth-child(2){background:var(--accent-purple);transform:rotate(1deg)}
+.today-stats .stat-card:nth-child(3){background:var(--accent);transform:rotate(-.8deg)}
+.today-stats .stat-card:nth-child(4){background:#fff;transform:rotate(1.2deg)}
+.today-stats .stat-card:nth-child(1):hover{transform:translateY(-4px) rotate(-1.5deg)}
+.today-stats .stat-card:nth-child(2):hover{transform:translateY(-4px) rotate(1deg)}
+.today-stats .stat-card:nth-child(3):hover{transform:translateY(-4px) rotate(-.8deg)}
+.today-stats .stat-card:nth-child(4):hover{transform:translateY(-4px) rotate(1.2deg)}
 
 /* ---------- 9. 徽章 / 标签 ---------- */
 .badge{border:2px solid #000;border-radius:0;font-weight:900;text-transform:uppercase;box-shadow:2px 2px 0 0 #000}
@@ -224,11 +222,19 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
   transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 #000 !important;
 }
 
-/* 3. 顶栏：去掉“工作台”tab 与“新建”按钮，返回按钮黄色，标题大写 */
+/* 3. 顶栏：去掉“工作台”tab 与“新建”按钮，返回按钮黄色，标题大写；
+   顶栏左右缩进与 .page-container 一致，使边框与下方模块对齐 */
 .topbar-tabs,.topbar-add-btn{display:none !important}
 .topbar-back{display:flex !important;background:var(--accent-yellow) !important;color:#000 !important}
 .topbar-title{text-transform:uppercase;letter-spacing:-.01em}
 .topbar-search input::placeholder{color:#000;opacity:.55}
+.topbar{
+  margin:0 20px !important;
+  width:auto !important;
+  align-self:stretch !important;
+}
+@media(max-width:900px){.topbar{margin:0 16px !important}}
+@media(max-width:380px){.topbar{margin:0 12px !important}}
 
 /* 4. 侧边栏导航图标彩色底座 */
 .nav-item[data-module="today"] .nav-icon{background:#FFD93D !important}
@@ -287,18 +293,24 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 /* 10. 日历对齐预览 */
 .calendar-card{background:#FFF7DC !important}
 .calendar-day-header:nth-child(6),.calendar-day-header:nth-child(7){color:#FF6B6B !important}
-.calendar-day{border:2px solid #000 !important;box-shadow:2px 2px 0 0 #000 !important}
+.calendar-day{background:#fff !important;border:2px solid #000 !important;box-shadow:2px 2px 0 0 #000 !important}
 .calendar-day.today{background:#FF6B6B !important;color:#000 !important;border:3px solid #000 !important}
 .calendar-day:not(.today):hover{background:var(--bg-muted) !important}
 .calendar-todo-dot{background:#FF6B6B !important}
 .calendar-nav-btn{background:#fff !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
 
-/* 11. 今日运势对齐预览 */
-.today-fortune-panel::before{height:10px !important;background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px) !important;border-bottom:3px solid #000 !important}
-.fortune-rings{top:16px !important;right:12px !important;left:auto !important;transform:none !important;gap:6px !important}
+/* 11. 今日运势对齐预览：顶部彩条为笔直矩形 */
+.today-fortune-panel{position:relative;overflow:hidden}
+.today-fortune-panel::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:12px;z-index:2;
+  background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px);
+  border-bottom:3px solid #000;border-radius:0 !important;
+}
+.fortune-rings{position:absolute !important;top:18px !important;right:12px !important;left:auto !important;transform:none !important;gap:6px !important;z-index:3 !important}
 .fortune-ring{width:12px !important;height:12px !important;border:3px solid #000 !important;border-radius:50% !important;background:#FFD93D !important;box-shadow:none !important}
 .fortune-ring:nth-child(2){background:#FF6B6B !important}
 .fortune-ring:nth-child(3){background:#C4B5FD !important}
+.fortune-header{margin-top:14px !important}
 .fortune-date{background:var(--accent) !important;border:3px solid #000 !important;box-shadow:var(--shadow-sm) !important;padding:6px 10px !important}
 .fortune-date-day,.fortune-date-month,.fortune-date-sep{color:#000 !important}
 .fortune-chip{background:var(--bg) !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
