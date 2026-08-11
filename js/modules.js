@@ -249,6 +249,15 @@ const ModuleConfig = {
   updateLogs: [
     {
       date: '2026-08-11',
+      version: 'v3.3.45',
+      content: `v3.3.45更新。
+- 修复移动端布局异常：.app 原为 grid(240px 1fr)，移动端侧边栏隐藏后 grid track 仍在，把主内容区挤压成约 100px 窄列、内容被 overflow:hidden 裁切，左侧大片空白；现 ≤900px 塌成单列，主内容占满视口宽度
+- 落实【登录后优先读云端、本地仅作离线缓存】：store.js 新增 refreshFromCloud()（拉云端覆盖本地缓存）+ startCloudSync()/stopCloudSync()（登录后定时用云端覆盖本地，断网自动保留本地）；app.js 登录成功后启动、登出时停止
+- 局部 bump 缓存版本 ?v=76 → ?v=77`,
+      impact: '移动端布局恢复正常；登录后读取以云端为准、本地仅作离线缓存，多端同步更实时',
+    },
+    {
+      date: '2026-08-11',
       version: 'v3.3.35',
       content: `v3.3.35更新。
 - 全站视觉换肤为 Neo-brutalism（新粗野主义）：奶油底 #FFFDF5 + 底板波点纹理、纯黑描边与硬阴影（4/8/12px 无模糊）、一律直角（头像/徽章/玻璃罐/扭蛋球等圆形保留）

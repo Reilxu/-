@@ -187,15 +187,20 @@ const App = {
       self.renderBottomNav();
       if (isNewLogin) self.showToast('已登录，数据已同步到云端');
       self.navigate(self.currentModule);
+      // 登录后启动「云端优先」定时同步：本地缓存持续镜像云端，断网自动回退本地
+      Store.startCloudSync(function () { self.navigate(self.currentModule); });
     }).catch(function () {
       self._authSyncing = false;
       self.renderAuthArea();
       self.renderBottomNav();
       if (isNewLogin) self.showToast('已登录（云端同步稍后重试）');
+      // 即便首次同步失败，也启动定时重试，连上网即拉取云端
+      Store.startCloudSync(function () { self.navigate(self.currentModule); });
     });
   },
 
   _onSignedOut(showToast) {
+    Store.stopCloudSync();
     Store.setCloudUser(null);
     this.renderAuthArea();
     this.renderBottomNav();

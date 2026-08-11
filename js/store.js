@@ -2199,6 +2199,83 @@ const Store = {
   // 别名：首次迁移本地数据到云端
   migrateLocalToSupabase() { return this.pushAllToCloud(); },
 
+  /**
+   * 云端优先刷新：把云端数据拉回本地缓存（本地仅作离线缓存）。
+   * 登录态下由 startCloudSync 定时调用；拉取失败则保留本地缓存（离线可用）。
+   * 与 get() 保持同步读取不冲突：本地缓存被持续镜像成「云端的最新值」，
+   * 因此 UI 读到的就是云端数据，且断网时自动回退到本地。
+   * @returns {Promise<boolean>} 是否有数据变化（用于决定是否重渲染）
+   */
+  async refreshFromCloud() {
+    if (!this.isCloud()) return false;
+    let changed = false;
+    const norm = function (arr) {
+      return (arr || []).slice().sort(function (a, b) {
+        const ka = a && (a.id || a.item_id) ? String(a.id || a.item_id) : '';
+        const kb = b && (b.id || b.item_id) ? String(b.id || b.item_id) : '';
+        return ka.localeCompare(kb);
+      });
+    };
+    for (let i = 0; i < this.SYNC_BUCKETS.length; i++) {
+      const key = this.SYNC_BUCKETS[i];
+      try {
+        const cloud = await window.SBData.list(key);
+        const local = this.get(key);
+        if (JSON.stringify(norm(cloud)) !== JSON.stringify(norm(local))) {
+          // 直接写本地缓存，不触发回推云端（避免回声 / 重复写入）
+          try { localStorage.setItem(key, JSON.stringify(cloud || [])); } catch (e) {}
+          changed = true;
+        }
+      } catch (e) { /* 离线 / 失败：保留本地缓存 */ }
+    }
+    try {
+      const cloud = await window.SBData.getSettings();
+      if (cloud && typeof cloud === 'object') {
+        const local = this.getObject(this.KEYS.settings);
+        if (JSON.stringify(cloud) !== JSON.stringify(local)) {
+          try { localStorage.setItem(this.KEYS.settings, JSON.stringify(cloud)); } catch (e) {}
+          changed = true;
+        }
+      }
+    } catch (e) { /* 离线 / 失败：保留本地缓存 */ }
+    return changed;
+  },
+
+  // 是否正在编辑（输入框聚焦 / 弹窗打开），此时跳过自动重渲染以免打断输入
+  _isEditing() {
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' ||
+               ae.tagName === 'SELECT' || ae.isContentEditable)) return true;
+    const modal = document.querySelector('.modal-overlay');
+    if (modal && getComputedStyle(modal).display !== 'none') return true;
+    return false;
+  },
+
+  /**
+   * 登录后启动：定时用云端覆盖本地缓存，使「读取以云端为准」。
+   * @param {Function} rerender 数据变化且不在编辑态时回调（重渲染当前视图）
+   * @param {number} intervalMs 轮询间隔，默认 20s
+   */
+  startCloudSync(rerender, intervalMs) {
+    this.stopCloudSync();
+    const self = this;
+    const ms = intervalMs || 20000;
+    this._cloudSyncTimer = setInterval(async function () {
+      if (!self.isCloud()) return;
+      try {
+        const changed = await self.refreshFromCloud();
+        if (changed && typeof rerender === 'function' && !self._isEditing()) {
+          rerender();
+        }
+      } catch (e) { /* 忽略单次异常 */ }
+    }, ms);
+  },
+
+  // 停止定时云端同步（登出时调用）
+  stopCloudSync() {
+    if (this._cloudSyncTimer) { clearInterval(this._cloudSyncTimer); this._cloudSyncTimer = null; }
+  },
+
 };
 
 // Export for use in different environments

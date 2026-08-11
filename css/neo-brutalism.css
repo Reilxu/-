@@ -366,3 +366,32 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
   .hero-greeting{box-shadow:8px 8px 0 0 #FF6B6B !important}
   .today-fortune-panel{box-shadow:8px 8px 0 0 #C4B5FD !important}
 }
+
+/* ---------- 16. 移动端布局修复（v3.3.45）----------
+   根因：.app 是 grid(240px 1fr)，移动端 .sidebar{display:none} 后
+   grid track 仍在，main-content 被挤到约 100px 窄列 + overflow:hidden，
+   左侧大片空白、内容被裁。这里在 ≤900px 把 .app 塌成单列，让主内容占满。 */
+@media(max-width:900px){
+  .app{
+    display:block !important;
+    grid-template-columns:none !important;
+    padding:0 !important;
+  }
+  .sidebar{display:none !important}
+  .main-content{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:100vh !important;
+    background:transparent !important;
+    border:none !important;
+    overflow:visible !important;
+  }
+  .page-container{
+    overflow-y:visible !important;
+    min-height:auto !important;
+    padding:16px !important;
+  }
+  .bottom-nav{display:block !important}
+  /* 顶栏在移动端与内容同宽，已有 16px 边距，无需再撑满 */
+  .topbar{margin:0 12px !important}
+}

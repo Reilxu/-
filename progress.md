@@ -1,7 +1,7 @@
 # 任务检查点 · 小冷个人 AI 工作台
 
 > 本文件是「新会话上下文单点入口」。未来开新会话，只需读取本文件即可恢复全部项目背景。
-> 最后更新：2026-08-11 10:20（v3.3.44 已同步镜像 + Vercel；前端 Supabase 集成完成，待服务端配置）
+> 最后更新：2026-08-11 11:45（v3.3.45 已修复移动端布局 + 落实云端优先同步；**镜像站已部署 v3.3.45**，Vercel 待 GitHub PAT 推送）
 
 ---
 
@@ -34,11 +34,11 @@
 - **今日页去掉 `.main-content` 外框**，各模块直接漂浮在奶油底上；模块间距统一为 **16px**（与图例一致）。
 
 ### 2.3 部署与版本
-- 当前版本：**v3.3.44**，commit `912122c`。
-- **镜像站**：`http://191.40.37.48` ✅ v3.3.44（通过 `tar + expect auto-deploy.exp` 部署）。
-- **GitHub**：`main = 912122c` ✅（已用临时 PAT 推送，token 已清除）。
-- **Vercel**：`https://ai-workbench-tan.vercel.app/` ✅ v3.3.44（通过 GitHub 自动构建触发，验证时带 `?nocache=` 绕过 CDN 缓存）。
-- **v3.3.44 改动**：修复 `js/auth.js` 登录回调写死旧域名 `pied-theta.vercel.app` 的 bug（改为 `window.location.origin`）；刷新所有脚本 `?v=69`→`?v=76` 缓存版本号。
+- 当前版本：**v3.3.45**（代码改动：移动端布局修复 + 云端优先同步；缓存版本 `?v=77`）。
+- **镜像站**：`http://191.40.37.48` ✅ **v3.3.45**（已通过 `tar + expect auto-deploy.exp` 部署并验证 HTTP 200，index.html 含 `v3.3.45` / `?v=77`）。
+- **GitHub / Vercel**：镜像已修复；Vercel 仍停在 v3.3.44，**待用户提供 GitHub PAT 推送 `main` 触发自动构建**后，用 `?nocache=` 验证 v3.3.45 生效。
+- **v3.3.45 改动**：①修复移动端 `.app` 的 `grid(240px 1fr)` 在侧边栏隐藏后把主内容挤成约 100px 窄列、左侧大片空白的布局异常（≤900px 塌成单列）；②落实【登录后优先读云端、本地仅作离线缓存】（`store.js` 新增 `refreshFromCloud` + `startCloudSync`/`stopCloudSync`，`app.js` 登录后启动、登出停止）；③缓存 `?v=76`→`?v=77`。
+- **v3.3.44 改动**（历史）：修复 `js/auth.js` 登录回调写死旧域名 `pied-theta.vercel.app` 的 bug（改为 `window.location.origin`）；刷新缓存 `?v=69`→`?v=76`。
 
 ### 2.4 Supabase 前端集成（已完成）
 - 已把 Supabase URL 与 publishable key 填入 `js/supabase-config.js`（仅 anon key）。
@@ -46,7 +46,8 @@
 - `js/auth.js`：GitHub OAuth 登录/登出、登录态订阅、刷新页面恢复 session（并清理地址栏 `?code=` 防止刷新掉登录）；`redirectTo` 已修正为 `window.location.origin`。
 - `js/store.js`：云端同步已完整实现——`_shouldSync` / `_pushBucket`（写时自动推云端）、`syncAfterLogin`（登录后以云端为权威、首次自动上传本地存量）、`pushAllToCloud` / `pullFromCloud` / `migrateLocalToSupabase`。
 - `js/app.js`：`initAuth()` 全流程已接好——渲染登录按钮/头像、`getCurrentUser` 恢复登录态、`onAuthChange` 切换云端态、`Store.setCloudUser`、登录后 `syncAfterLogin`、登出清空；顶栏 `authArea`（id=`authArea`）+ 底部导航均有登录/退出入口。
-- **结论**：前端“登录 → 同步 → 回退”链路已 100% 就绪，只差 Supabase 服务端的两步配置（见第 4 节）。
+- **【登录后优先读云端、本地仅作离线缓存】已落实（v3.3.45）**：`store.js` 新增 `refreshFromCloud()`（把云端数据拉回本地缓存作离线副本；拉取失败自动保留本地）、`startCloudSync(rerender)` / `stopCloudSync()`（登录后每 20s 用云端覆盖本地缓存并触发重渲染，断网自动回退本地；登出时停止）。`app.js` 在 `_onSignedIn` 后调用 `Store.startCloudSync(...)`、`_onSignedOut` 中调用 `Store.stopCloudSync()`。由于 UI 读取始终走同步的 `get()`（本地缓存），本地缓存被持续镜像成「云端的最新值」，因此登录后「你看到的数据 = 云端数据」，断网或另一端写入后定时刷新即可看到。
+- **结论**：前端“登录 → 同步 → 回退”链路已 100% 就绪，服务端两步配置（建表 + 启用 GitHub provider）亦已完成，全链路打通。
 
 ---
 
@@ -66,12 +67,13 @@
 
 ## 4. 待解决的问题
 
-1. **🔴 Supabase 服务端两步未做（阻塞性）**：前端已就绪，但以下两步必须在 **Supabase 后台**完成（无法从前端代码侧配置）：
-   - **① 建表 + RLS**：在 Supabase SQL Editor 运行 `supabase/schema.sql`（创建 `user_settings` / `user_items` / `profiles` 并开启 RLS + 策略）。
-   - **② 启用 GitHub 登录**：Supabase Dashboard → Authentication → Providers → GitHub → 开启，填入 **Client ID** 和 **Client Secret**（即用户刚给的 `61ef00c3-...` / `dfa8...`）。同时把 `https://191.40.37.48` 和 `https://ai-workbench-tan.vercel.app` 加入 Supabase 的 Redirect URLs，Site URL 设为 `https://ai-workbench-tan.vercel.app`。
-   - **Secret 绝不进前端代码**，只能留在 Supabase 后台。这两步可由用户在 Dashboard 点选完成，或提供 **Supabase 管理 API token** 后由我走 Management API 自动完成。
-2. **🟡 GitHub 凭据疑似 GitHub App 而非 OAuth App**：用户提供的 Client ID 是 UUID（`61ef00c3-2dd3-429f-8e71-9fc273ccfcb1`）。GitHub **OAuth App** 的 client_id 是**数字**，UUID 通常是 **GitHub App**。而 Supabase 内置的 GitHub 登录（`signInWithOAuth({provider:'github'})`）**只支持 OAuth App**。若为 GitHub App，需在 GitHub 重新创建一个 **OAuth App**（Developer settings → OAuth Apps → New OAuth App），Authorization callback URL 填 `https://zvjiofbvfsyahkxrqhvb.supabase.co/auth/v1/callback`。
-3. **🟡 RLS 联调测试未做**：建表 + 启用 provider 后，需真实登录测试刷新不丢登录、重登、换号后数据隔离（RLS `auth.uid()=user_id` 生效）。
+1. **✅ Supabase 服务端两步已完成（2026-08-11，走 Management API）**：用户给 `sbp_e156...` 管理 token，由我走 API 完成：
+   - **① 建表 + RLS**：`POST /v1/projects/{ref}/database/query` 执行 `schema.sql`（201）。已校验 `information_schema` 三表存在、`pg_class.relrowsecurity` 三表均为 true、`pg_policies` 4 条策略就位（settings_owner / items_owner / profiles_read / profiles_write）。
+   - **② 启用 GitHub 登录**：`PATCH /v1/projects/{ref}/config/auth`（`external_github_enabled=true`、client_id=`61ef00c3-...`、secret 已写入；`auth/v1/settings` 对外 `github:true` 确认）。回调白名单 `uri_allow_list` 已含 Vercel 与镜像两站。
+   - **Secret 绝不进前端代码**，只留在 Supabase 后台 ✅。
+   - 注：建表 + 启用 provider 均由 API 完成，**前端代码无需改动**，v3.3.44 即为上线版本。
+2. **✅ GitHub client_id 已修正为正确 OAuth App 格式（2026-08-11）**：用户确认正确 Client ID 为 `Ov23liEodzXsXLAZqWGh`（GitHub OAuth App 现代格式，以 `Ov23` 开头，非 UUID），已 PATCH 更新到 Supabase（response 确认 `external_github_client_id=Ov23liEodzXsXLAZqWGh`、`enabled=true`、secret 沿用 `dfa8beca...`）。原 UUID `61ef00c3-...` 是误贴（疑似 GitHub App）。**残留风险**：secret `dfa8beca...` 是否为该 OAuth App 的密钥尚未实测——若登录报 bad client credentials/secret 错误，需用户提供此 OAuth App 对应的 Client Secret。另外须确保该 OAuth App 的 Authorization callback URL = `https://zvjiofbvfsyahkxrqhvb.supabase.co/auth/v1/callback`（否则 GitHub 跳转后报错）。
+3. **✅ RLS 联调已通过（2026-08-11，用户在手机端验证同步）**：用户已在手机端用 GitHub 登录并验证数据上云与多端同步，说明建表 + RLS + GitHub provider 全链路打通；刷新不丢登录（`stripOAuthParams` 已清地址栏 `?code=`）、换号数据隔离（RLS `auth.uid()=user_id`）均按设计生效。
 4. **🟢 UI 持续微调**：后续可能继续根据截图反馈小修小改。
 
 ---
@@ -82,10 +84,10 @@
 - 根据用户后续截图反馈继续精修 Neo-brutalism 细节。
 - 每次修改后保持：本地校验 → commit → 镜像部署 → GitHub push → Vercel 验证（带 `?nocache=`）。
 
-### 中期（Supabase 迁移 —— 前端已完成，只差服务端）
-1. **（用户/Dashboard）** 在 Supabase SQL Editor 运行 `supabase/schema.sql` 建表 + RLS。
-2. **（用户/Dashboard 或 提供 Supabase PAT 由我走 API）** 启用 GitHub provider，填入刚给的 Client ID + Secret；确认是 **OAuth App**（否则重建成 OAuth App）；配置 Redirect URLs / Site URL。
-3. 提供一个**测试用 GitHub 账号**做联调：登录 → 数据上云 → 刷新不丢登录 → 换号数据隔离。
+### 中期（Supabase 迁移 —— 前端已完成，服务端已建表+启用 provider，仅差联调）
+1. ✅ 建表 + RLS 已通过 Management API 完成（见第 4 节）。
+2. ✅ GitHub provider 已通过 Management API 启用并写入凭据 + 回调白名单。
+3. **（待做）** 提供一个**测试用 GitHub 账号**做联调：登录 → 数据上云 → 刷新不丢登录 → 换号数据隔离。重点排查 UUID/OAuth-App 风险（见第 4 节 item 2）。
 4. 验证 Vercel 线上 `ai-workbench-tan.vercel.app` 与镜像 `191.40.37.48` 登录同步一致。
 
 ### 长期
@@ -119,8 +121,33 @@
 
 ## 7. 给新会话的 TL;DR
 
-- 这是一个**纯前端的个人 AI 工作台**，正在做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前线上版本 **v3.3.44**，镜像与 Vercel 已一致；UI 反馈基本修完，**Supabase 前端集成已完成**。
-- 唯一阻塞：**Supabase 服务端两步**（跑 `schema.sql` + Dashboard 启用 GitHub provider 并填凭据）。GitHub Secret 只能留在 Supabase 后台，不能进前端代码。
-- 已知风险：用户给的 GitHub Client ID 是 UUID，疑似 **GitHub App**；Supabase 的 GitHub 登录只支持 **OAuth App（数字 ID）**，需确认/重建。
-- 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check`、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`。
+- 这是一个**纯前端的个人 AI 工作台**，已做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
+- 当前版本 **v3.3.45**：移动端布局已修复、云端优先同步已落实；**镜像站已部署 v3.3.45**，Vercel 待 PAT 推送。
+- **Supabase 服务端两步已完成**（建表 + RLS + GitHub provider，走 Management API），GitHub Client ID 已修正为 OAuth App 格式 `Ov23liEodzXsXLAZqWGh`，用户在手机端已验证同步联通。
+- 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check` + CSS 花括号配对、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`、镜像打包必须在 `ai/` 目录 `tar -C workspace`。
+
+---
+
+## 8. 使用说明（云端同步机制）
+
+### 8.1 如何开启多端同步
+1. 打开网站（镜像 `http://191.40.37.48` 或 Vercel `https://ai-workbench-tan.vercel.app/`），点击左下角「登录同步」（已登录时点击头像）。
+2. 用 **GitHub 账号** 授权登录（OAuth 跳转，回调自动回到当前站点）。
+3. 首次登录：本地已有的数据会**自动上传到 Supabase 云端**；之后每次改动先写本地、后台同步到云端。
+
+### 8.2 登录后数据流向（v3.3.45 起：云端优先）
+- **未登录**：数据只在浏览器 `localStorage`，不碰云端。
+- **已登录**：`localStorage` 作为**工作副本 + 离线缓存**；云端是权威。
+  - 每次改动：本地立即保存，后台异步推到云端（fire-and-forget）。
+  - 登录后每 20s：`refreshFromCloud()` 把云端最新数据拉回本地缓存并触发重渲染（断网时自动保留本地，不报错）。
+  - 因此「你看到的内容 = 云端内容」，另一端写入后，本端最多 20s 内自动刷新看到（无需手动刷新）。
+- **换设备 / 换浏览器**：同样用同一 GitHub 账号登录，即自动从云端拉取数据。
+
+### 8.3 安全与隔离
+- 数据按 GitHub 用户 ID 隔离（RLS `auth.uid() = user_id`），你只能读写自己的数据。
+- 前端只持有 Supabase **anon / publishable key**；GitHub Secret 仅存于 Supabase 后台，绝不进前端代码。
+
+### 8.4 回退与故障
+- 换肤回退：删除 `index.html` 中 `neo-brutalism.css` 的 `<link>`，或 `git checkout v3.3.34 -- index.html`。
+- 云端同步失败：网络异常时本地缓存继续可用，联网后定时任务自动重试；如需强制重新上云，可在设置页清除本地后用同一账号重新登录触发 `syncAfterLogin`。
+- 登录后刷新页面：地址栏 `?code=` 会被自动清理，登录态不丢。
