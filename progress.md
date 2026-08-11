@@ -1,7 +1,7 @@
 # 任务检查点 · 小冷个人 AI 工作台
 
 > 本文件是「新会话上下文单点入口」。未来开新会话，只需读取本文件即可恢复全部项目背景。
-> 最后更新：2026-08-11 09:43（v3.3.43 已同步镜像 + Vercel）
+> 最后更新：2026-08-11 10:20（v3.3.44 已同步镜像 + Vercel；前端 Supabase 集成完成，待服务端配置）
 
 ---
 
@@ -34,14 +34,19 @@
 - **今日页去掉 `.main-content` 外框**，各模块直接漂浮在奶油底上；模块间距统一为 **16px**（与图例一致）。
 
 ### 2.3 部署与版本
-- 当前版本：**v3.3.43**，commit `a4bd31b`。
-- **镜像站**：`http://191.40.37.48` ✅ v3.3.43（通过 `tar + expect auto-deploy.exp` 部署）。
-- **GitHub**：`main = a4bd31b` ✅（已用临时 PAT 推送，token 已清除）。
-- **Vercel**：`https://ai-workbench-tan.vercel.app/` ✅ v3.3.43（通过 GitHub 自动构建触发，验证时带 `?nocache=` 绕过 CDN 缓存）。
+- 当前版本：**v3.3.44**，commit `912122c`。
+- **镜像站**：`http://191.40.37.48` ✅ v3.3.44（通过 `tar + expect auto-deploy.exp` 部署）。
+- **GitHub**：`main = 912122c` ✅（已用临时 PAT 推送，token 已清除）。
+- **Vercel**：`https://ai-workbench-tan.vercel.app/` ✅ v3.3.44（通过 GitHub 自动构建触发，验证时带 `?nocache=` 绕过 CDN 缓存）。
+- **v3.3.44 改动**：修复 `js/auth.js` 登录回调写死旧域名 `pied-theta.vercel.app` 的 bug（改为 `window.location.origin`）；刷新所有脚本 `?v=69`→`?v=76` 缓存版本号。
 
-### 2.4 Supabase 前期准备
-- 已把用户提供的 Supabase URL 与 publishable key 填入 `js/supabase-config.js`。
-- 预备了 `js/supabase-client.js`（通用 CRUD 封装，未配置时自动回退 localStorage）、`js/auth.js`（GitHub OAuth 登录态）、`supabase/schema.sql`（含 `user_settings` / `user_items` / `profiles` + RLS）。
+### 2.4 Supabase 前端集成（已完成）
+- 已把 Supabase URL 与 publishable key 填入 `js/supabase-config.js`（仅 anon key）。
+- `js/supabase-client.js`：通用 CRUD 封装（`list/upsertAll/save/remove/getSettings/saveSettings`），未配置时 `SupabaseReady=false` 自动回退 localStorage。
+- `js/auth.js`：GitHub OAuth 登录/登出、登录态订阅、刷新页面恢复 session（并清理地址栏 `?code=` 防止刷新掉登录）；`redirectTo` 已修正为 `window.location.origin`。
+- `js/store.js`：云端同步已完整实现——`_shouldSync` / `_pushBucket`（写时自动推云端）、`syncAfterLogin`（登录后以云端为权威、首次自动上传本地存量）、`pushAllToCloud` / `pullFromCloud` / `migrateLocalToSupabase`。
+- `js/app.js`：`initAuth()` 全流程已接好——渲染登录按钮/头像、`getCurrentUser` 恢复登录态、`onAuthChange` 切换云端态、`Store.setCloudUser`、登录后 `syncAfterLogin`、登出清空；顶栏 `authArea`（id=`authArea`）+ 底部导航均有登录/退出入口。
+- **结论**：前端“登录 → 同步 → 回退”链路已 100% 就绪，只差 Supabase 服务端的两步配置（见第 4 节）。
 
 ---
 
@@ -61,11 +66,13 @@
 
 ## 4. 待解决的问题
 
-1. **🟡 Supabase 全量迁移未完成**：目前只填了 URL + publishable key，Store 层兼容改造、GitHub OAuth 登录联调、数据迁移、RLS 测试都还没做。
-2. **🟡 缺少 GitHub OAuth App 凭据**：需要 `Client ID` 和 `Client Secret` 才能在 Supabase Auth 里启用 GitHub 登录。
-3. **🟡 Vercel 环境变量未配置**：需要在 Vercel 项目里添加 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`（或沿用前端硬编码，视方案而定）。
-4. **🟡 数据迁移与回滚策略未验证**：需要一套 localStorage → Supabase 的迁移流程，以及未登录时自动回退 localStorage 的兜底逻辑。
-5. **🟢 UI 持续微调**：后续可能继续根据截图反馈小修小改；当前已建立“截图 → 定位 → CSS 覆盖 → 部署 → 验证”的快速迭代流程。
+1. **🔴 Supabase 服务端两步未做（阻塞性）**：前端已就绪，但以下两步必须在 **Supabase 后台**完成（无法从前端代码侧配置）：
+   - **① 建表 + RLS**：在 Supabase SQL Editor 运行 `supabase/schema.sql`（创建 `user_settings` / `user_items` / `profiles` 并开启 RLS + 策略）。
+   - **② 启用 GitHub 登录**：Supabase Dashboard → Authentication → Providers → GitHub → 开启，填入 **Client ID** 和 **Client Secret**（即用户刚给的 `61ef00c3-...` / `dfa8...`）。同时把 `https://191.40.37.48` 和 `https://ai-workbench-tan.vercel.app` 加入 Supabase 的 Redirect URLs，Site URL 设为 `https://ai-workbench-tan.vercel.app`。
+   - **Secret 绝不进前端代码**，只能留在 Supabase 后台。这两步可由用户在 Dashboard 点选完成，或提供 **Supabase 管理 API token** 后由我走 Management API 自动完成。
+2. **🟡 GitHub 凭据疑似 GitHub App 而非 OAuth App**：用户提供的 Client ID 是 UUID（`61ef00c3-2dd3-429f-8e71-9fc273ccfcb1`）。GitHub **OAuth App** 的 client_id 是**数字**，UUID 通常是 **GitHub App**。而 Supabase 内置的 GitHub 登录（`signInWithOAuth({provider:'github'})`）**只支持 OAuth App**。若为 GitHub App，需在 GitHub 重新创建一个 **OAuth App**（Developer settings → OAuth Apps → New OAuth App），Authorization callback URL 填 `https://zvjiofbvfsyahkxrqhvb.supabase.co/auth/v1/callback`。
+3. **🟡 RLS 联调测试未做**：建表 + 启用 provider 后，需真实登录测试刷新不丢登录、重登、换号后数据隔离（RLS `auth.uid()=user_id` 生效）。
+4. **🟢 UI 持续微调**：后续可能继续根据截图反馈小修小改。
 
 ---
 
@@ -75,13 +82,11 @@
 - 根据用户后续截图反馈继续精修 Neo-brutalism 细节。
 - 每次修改后保持：本地校验 → commit → 镜像部署 → GitHub push → Vercel 验证（带 `?nocache=`）。
 
-### 中期（Supabase 迁移）
-1. 用户提供 **GitHub OAuth App** 的 `Client ID` + `Client Secret`。
-2. 在 Supabase Dashboard 里配置 GitHub Provider，并设置 Vercel 生产域名为允许的 Redirect URL。
-3. 改造 `js/store.js`：检测登录态 → 已登录走 Supabase / 未登录回退 localStorage。
-4. 编写一次性迁移脚本/逻辑：把当前 `localStorage` 里的数据导入 `user_items` / `user_settings`。
-5. 在 RLS 开启的情况下，测试刷新、重登、换账号的数据隔离与正确性。
-6. 推送 GitHub，确认 Vercel 构建通过并线上测试。
+### 中期（Supabase 迁移 —— 前端已完成，只差服务端）
+1. **（用户/Dashboard）** 在 Supabase SQL Editor 运行 `supabase/schema.sql` 建表 + RLS。
+2. **（用户/Dashboard 或 提供 Supabase PAT 由我走 API）** 启用 GitHub provider，填入刚给的 Client ID + Secret；确认是 **OAuth App**（否则重建成 OAuth App）；配置 Redirect URLs / Site URL。
+3. 提供一个**测试用 GitHub 账号**做联调：登录 → 数据上云 → 刷新不丢登录 → 换号数据隔离。
+4. 验证 Vercel 线上 `ai-workbench-tan.vercel.app` 与镜像 `191.40.37.48` 登录同步一致。
 
 ### 长期
 - 稳定运行后，把 `progress.md` 更新为更轻量的“版本日志 + 架构决策”文档。
@@ -92,9 +97,9 @@
 
 | 文件路径 | 说明 |
 | --- | --- |
-| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css?v=75`；版本字符串 `v3.3.43` |
+| `/Users/xuleng/WorkBuddy/ai/workspace/index.html` | 入口；加载 `style.css` → `neo-brutalism.css?v=76`；版本字符串 `v3.3.44`；脚本统一 `?v=76` |
 | `/Users/xuleng/WorkBuddy/ai/workspace/css/style.css` | **原站样式，换肤期禁止修改** |
-| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v75）**，所有 Neo-brutalism 视觉与修复补丁在此 |
+| `/Users/xuleng/WorkBuddy/ai/workspace/css/neo-brutalism.css` | **主题覆盖层（当前 v76）**，所有 Neo-brutalism 视觉与修复补丁在此 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/neo-brutalism-preview.html` | 预览/参考页面，用于比对设计效果 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/app.js` | 主应用逻辑，含页面渲染、弹窗、日历、KPI 等 |
 | `/Users/xuleng/WorkBuddy/ai/workspace/js/habits.js` | 习惯打卡模块；已注入 `--hc` 变量使阴影跟随图标色 |
@@ -115,6 +120,7 @@
 ## 7. 给新会话的 TL;DR
 
 - 这是一个**纯前端的个人 AI 工作台**，正在做 **Neo-brutalism 换肤** + **Supabase 数据同步**。
-- 当前线上版本 **v3.3.43**，镜像与 Vercel 已一致；UI 反馈基本修完，只剩 **Supabase 全量迁移**。
-- 迁移前需要你提供：**GitHub OAuth App 的 Client ID + Client Secret**（以及是否要在 Vercel 配环境变量）。
+- 当前线上版本 **v3.3.44**，镜像与 Vercel 已一致；UI 反馈基本修完，**Supabase 前端集成已完成**。
+- 唯一阻塞：**Supabase 服务端两步**（跑 `schema.sql` + Dashboard 启用 GitHub provider 并填凭据）。GitHub Secret 只能留在 Supabase 后台，不能进前端代码。
+- 已知风险：用户给的 GitHub Client ID 是 UUID，疑似 **GitHub App**；Supabase 的 GitHub 登录只支持 **OAuth App（数字 ID）**，需确认/重建。
 - 关键铁律：换肤只动 `neo-brutalism.css`、部署前 `node --check`、Supabase 只放 anon key、GitHub 推完清 token、Vercel 验证带 `?nocache=`。
