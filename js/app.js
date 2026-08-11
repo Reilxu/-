@@ -4204,13 +4204,14 @@ const App = {
         <div class="settings-section-header">${Icons.help} 使用说明</div>
         <div class="settings-section-body" style="padding:16px 18px;">
           <div style="font-size:13px;line-height:1.8;color:var(--text);">
-            <p style="margin-bottom:10px;"><strong>数据保存方式：</strong>所有数据保存在浏览器 localStorage 中，不上传到任何服务器。数据只在当前浏览器中可用，清除浏览器缓存会丢失数据。</p>
+            <p style="margin-bottom:10px;"><strong>数据保存方式：</strong>未登录时，所有数据保存在当前浏览器的 localStorage 中（本地优先，清除浏览器缓存会丢失数据）。登录 GitHub 账号后，数据会自动同步到云端（Supabase PostgreSQL），支持多设备共享、换设备或换浏览器不丢失；断网时自动回退本地缓存，联网后自动同步。</p>
+            <p style="margin-bottom:10px;"><strong>云端同步：</strong>在「设置」页用 GitHub 账号登录即可开启云端同步。云端数据按账号隔离，仅本人可读写自己的数据。习惯打卡、创作、素材、灵感、减肥记录等全部业务数据都会同步；AI 资讯与平台热点为只读缓存，不同步。</p>
             <p style="margin-bottom:10px;"><strong>AI 功能：</strong>AI 帮手、选题灵感、内容创作 AI 写作需要配置 Deepseek API Key。API Key 只保存在本地浏览器中。</p>
             <p style="margin-bottom:10px;"><strong>AI 资讯：</strong>自动从 aihot.virxact.com 获取，每小时缓存一次。</p>
             <p style="margin-bottom:10px;"><strong>平台热点：</strong>自动从 60s.viki.moe 获取，每30分钟缓存一次。</p>
             <p style="margin-bottom:10px;"><strong>爆款拆解：</strong>基于 Deepseek AI 进行视频结构化拆解分析，包括结构分段、爆款归因、六维评分、可借鉴策略。输入视频标题和文案即可使用。</p>
-            <p style="margin-bottom:10px;"><strong>费用说明：</strong>工作台本身免费。所有 AI 功能均通过 Deepseek API 实现，按使用量计费。</p>
-            <p><strong>备份建议：</strong>建议每周导出一次数据备份。</p>
+            <p style="margin-bottom:10px;"><strong>费用说明：</strong>工作台本身免费。所有 AI 功能均通过 Deepseek API 实现，按使用量计费；云端同步使用 Supabase，个人免费额度内不收费。</p>
+            <p><strong>备份建议：</strong>已开启云端同步的数据会自动备份在云端；未登录或需要离线备份时，建议每周导出一次数据。</p>
           </div>
         </div>
       </div>
