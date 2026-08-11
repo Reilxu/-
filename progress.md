@@ -1,7 +1,7 @@
 # 任务检查点 · 个人 AI 工作台（Neo-brutalism 换肤 + Supabase 同步）
 
 > 本文件是「新会话上下文单点」。未来开新会话，只需读取本文件即可恢复全部背景。
-> 最后更新：2026-08-11（v3.3.40 已部署镜像，GitHub/Vercel 未同步）
+> 最后更新：2026-08-11（v3.3.41 已同步镜像 + GitHub/Vercel）
 
 ---
 
@@ -19,7 +19,7 @@
 ## 1. 原始任务目标
 
 1. **Neo-brutalism 全站换肤**：奶油底 `#FFFDF5` / 纯黑描边 + 硬阴影 / 主色红 `#FF6B6B`、辅色黄 `#FFD93D`、柔和紫 `#C4B5FD` / 直角（圆形元素保留）/ Space Grotesk + Noto Sans SC。
-2. **修 UI 反馈**：回应用户多轮截图反馈（hover 变黑、弹窗跑页底、文字看不见、日历/运势/习惯卡样式不一致等共 13 项）。
+2. **修 UI 反馈**：回应用户多轮截图反馈（hover 变黑、弹窗跑页底、文字看不见、日历/运势/习惯卡样式不一致等共 13 项；后续又补 4 项：日历白底、顶栏对齐、KPI 便签倾斜、运势顶部直条）。
 3. **Supabase 云端化**：全量迁移 localStorage → Supabase，加 GitHub OAuth 登录 + RLS（每用户仅读写自己数据），前端仅用 anon/publishable key，CRUD 齐全，部署到 Vercel。
 
 ---
@@ -32,6 +32,7 @@
 | v3.3.39 | — | 尝试永久隐藏 searchOverlay / fabOverlay（后已回退，未保留） |
 | v3.3.35 回退 | `14d7ae6` | 用户要求回退到此版本；镜像已部署；GitHub 强制推送曾 502 失败、token 已清除 |
 | **v3.3.40** | `f126bdd` | **13 项 UI 修复 + 配置 Supabase 凭据**；已部署镜像 191.40.37.48；未推 GitHub |
+| **v3.3.41** | `102a2eb` | **4 项 UI 精修**：日历日期格改白底、顶栏「今日」行与下方模块边框对齐、首页 4 个 KPI 便签加轻微倾斜角度、今日运势顶部彩条改笔直矩形；已同步镜像 + GitHub/Vercel |
 
 **v3.3.40 的 13 项修复清单（全部完成）：**
 1. 问候语「小冷」文字改纯黑。
@@ -47,6 +48,12 @@
 11. 今日运势卡改预览样式（顶部红黄紫条纹、日期红底黑边、右上彩色圆环）。
 12. Supabase URL 与 publishable key 填入 `js/supabase-config.js`。
 13. 各模块间距统一为 18px（与预览一致）。
+
+**v3.3.41 新增 4 项修复：**
+14. 日历日期格底色改为白色（ today 仍红色高亮）。
+15. 顶栏「今日」行左右缩进与 `.page-container` 一致，边框与下方模块对齐。
+16. 首页数据看板 4 个 KPI 便签各加轻微旋转角度（像便利贴）。
+17. 今日运势顶部彩条由弯曲/波浪改为笔直矩形条，彩色圆环固定右上角。
 
 **已通过校验**：所有 JS `node --check` + `neo-brutalism.css` 花括号配对 OK。
 
@@ -91,9 +98,9 @@
 ## 4. 关键文件清单
 
 ### 源码（workspace/）
-- `index.html` —— 入口，加载顺序 `style.css` → `neo-brutalism.css?v=73`；含版本字符串 `v3.3.40`
+- `index.html` —— 入口，加载顺序 `style.css` → `neo-brutalism.css?v=74`；含版本字符串 `v3.3.41`
 - `css/style.css` —— **原站样式，换肤期禁止改**
-- `css/neo-brutalism.css` —— **主题覆盖层（当前 v73）**，所有换肤视觉在此
+- `css/neo-brutalism.css` —— **主题覆盖层（当前 v74）**，所有换肤视觉在此
 - `js/supabase-config.js` —— **已填入用户 Supabase 凭据**（URL + publishable key）
 - `js/supabase-client.js` —— CDN supabase-js 封装，通用 CRUD，受 RLS 约束，未配置回退
 - `js/auth.js` —— GitHub OAuth 登录态
@@ -148,5 +155,5 @@
 - 换肤只动 `css/neo-brutalism.css`，**绝不碰 `style.css`/JS 业务逻辑**；回退靠删 link 或 `git reset --hard v3.3.34`。
 - 部署 = `tar` 打包 → `cp` 到 `ai/deploy-package.tar.gz` → `expect auto-deploy.exp` 到 191.40.37.48。GitHub/Vercel 需用户临时 PAT，用完清 token。
 - 体验红线：文字必须可见、弹窗别跑页底、配色间距以 `neo-brutalism-preview.html` 为准、别留整页遮罩。
-- 当前线上（镜像）= v3.3.40（13 项修复 + Supabase 凭据已填）；**GitHub/Vercel 还没同步**，Supabase 只配凭据、未做全量迁移。
+- 当前线上（镜像 + Vercel）= **v3.3.41**（13+4 项修复 + Supabase 凭据已填）；Supabase 只配凭据、未做全量迁移。
 - 用户 Supabase：URL `https://zvjiofbvfsyahkxrqhvb.supabase.co`，key 已写入 `js/supabase-config.js`。

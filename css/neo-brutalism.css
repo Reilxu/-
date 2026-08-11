@@ -299,18 +299,22 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 .calendar-todo-dot{background:#FF6B6B !important}
 .calendar-nav-btn{background:#fff !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
 
-/* 11. 今日运势对齐预览：顶部彩条为笔直矩形 */
-.today-fortune-panel{position:relative;overflow:hidden}
+/* 11. 今日运势对齐预览：顶部彩条笔直、填满模块上边框内侧 */
+.today-fortune-panel{position:relative;overflow:hidden;padding:18px 16px 14px !important}
 .today-fortune-panel::before{
-  content:"";position:absolute;left:0;right:0;top:0;height:12px;z-index:2;
-  background:repeating-linear-gradient(90deg,#FF6B6B 0 14px,#FFD93D 14px 28px,#C4B5FD 28px 42px);
+  content:"";position:absolute;left:0;right:0;top:0;height:10px;z-index:2;
+  background:
+    linear-gradient(90deg,#FF6B6B 0,#FF6B6B 33.333%,transparent 33.333%),
+    linear-gradient(90deg,#FFD93D 0,#FFD93D 33.333%,transparent 33.333%),
+    linear-gradient(90deg,#C4B5FD 0,#C4B5FD 33.333%,transparent 33.333%);
+  background-size:42px 100%;background-position:0 0,14px 0,28px 0;background-repeat:repeat-x;
   border-bottom:3px solid #000;border-radius:0 !important;
 }
-.fortune-rings{position:absolute !important;top:18px !important;right:12px !important;left:auto !important;transform:none !important;gap:6px !important;z-index:3 !important}
+.fortune-rings{position:absolute !important;top:16px !important;right:12px !important;left:auto !important;transform:none !important;gap:6px !important;z-index:3 !important}
 .fortune-ring{width:12px !important;height:12px !important;border:3px solid #000 !important;border-radius:50% !important;background:#FFD93D !important;box-shadow:none !important}
 .fortune-ring:nth-child(2){background:#FF6B6B !important}
 .fortune-ring:nth-child(3){background:#C4B5FD !important}
-.fortune-header{margin-top:14px !important}
+.fortune-header{margin-top:8px !important;margin-bottom:14px !important;position:relative;z-index:1 !important}
 .fortune-date{background:var(--accent) !important;border:3px solid #000 !important;box-shadow:var(--shadow-sm) !important;padding:6px 10px !important}
 .fortune-date-day,.fortune-date-month,.fortune-date-sep{color:#000 !important}
 .fortune-chip{background:var(--bg) !important;border:3px solid #000 !important;border-radius:0 !important;box-shadow:var(--shadow-sm) !important}
@@ -324,6 +328,30 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
 /* 13. 模块间距统一 18px */
 .app,.main-content,.page-container,.today-page,.today-hero,.hero-left-stack,.today-stats,.today-calendar-todo-row{gap:18px !important}
 .app{padding:18px !important}
+
+/* ---------- 14. 选题灵感：用户灵感 + 今日灵感 playful 彩色硬阴影，相邻不同色 ---------- */
+.inspiration-grid .inspiration-card,
+.user-inspiration-list .user-inspiration-item{background:#fff !important}
+.inspiration-card-title,.inspiration-card-text,.inspiration-card-label,
+.user-inspiration-title,.user-inspiration-desc,.user-inspiration-date{color:#000 !important}
+.inspiration-grid .inspiration-card:nth-child(4n+1),
+.user-inspiration-list .user-inspiration-item:nth-child(4n+1){box-shadow:6px 6px 0 0 #FF6B6B !important}
+.inspiration-grid .inspiration-card:nth-child(4n+2),
+.user-inspiration-list .user-inspiration-item:nth-child(4n+2){box-shadow:6px 6px 0 0 #FFD93D !important}
+.inspiration-grid .inspiration-card:nth-child(4n+3),
+.user-inspiration-list .user-inspiration-item:nth-child(4n+3){box-shadow:6px 6px 0 0 #C4B5FD !important}
+.inspiration-grid .inspiration-card:nth-child(4n+4),
+.user-inspiration-list .user-inspiration-item:nth-child(4n+4){box-shadow:6px 6px 0 0 #AFC9EA !important}
+.inspiration-grid .inspiration-card:hover,
+.user-inspiration-list .user-inspiration-item:hover{transform:translateY(-4px) !important}
+.inspiration-grid .inspiration-card:nth-child(4n+1):hover,
+.user-inspiration-list .user-inspiration-item:nth-child(4n+1):hover{box-shadow:10px 10px 0 0 #FF6B6B !important}
+.inspiration-grid .inspiration-card:nth-child(4n+2):hover,
+.user-inspiration-list .user-inspiration-item:nth-child(4n+2):hover{box-shadow:10px 10px 0 0 #FFD93D !important}
+.inspiration-grid .inspiration-card:nth-child(4n+3):hover,
+.user-inspiration-list .user-inspiration-item:nth-child(4n+3):hover{box-shadow:10px 10px 0 0 #C4B5FD !important}
+.inspiration-grid .inspiration-card:nth-child(4n+4):hover,
+.user-inspiration-list .user-inspiration-item:nth-child(4n+4):hover{box-shadow:10px 10px 0 0 #AFC9EA !important}
 
 /* ---------- 15. 响应式微调 ---------- */
 @media(max-width:900px){
