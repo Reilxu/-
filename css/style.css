@@ -7872,3 +7872,28 @@ textarea,
   .gacha-spin-btn { padding: 11px 22px; }
 }
 
+/* ==========================================================================
+   图片类元素基础尺寸（两套主题共用）
+   --------------------------------------------------------------------------
+   以下功能元素以 <img> 形式存在（糖罐/扭蛋机/习惯图标），其尺寸在
+   Neo-brutalism 覆盖层里用 !important 做了主题化调整。这里给一份基础尺寸，
+   保证关闭覆盖层回到经典版时也能正常显示，不被拉伸到原始像素大小。
+   ========================================================================== */
+.gacha-machine-img { width: 100%; height: auto; display: block; }
+.jar-png { width: 100%; height: auto; display: block; }
+.habit-icon-img { width: 28px; height: 28px; object-fit: contain; display: block; }
+.icon-pick .habit-icon-img { width: 18px; height: 18px; }
+.jar-candy .habit-icon-img { width: 12px; height: 12px; }
+
+/* 设置页 · 外观主题选项 */
+.theme-option {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; border: 1px solid var(--border, #e2e2e0);
+  border-radius: 12px; cursor: pointer; background: var(--bg-card, #fff);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.theme-option:hover { border-color: var(--accent, #C2F84F); }
+.theme-option input[type="radio"] { margin-top: 3px; accent-color: var(--accent, #C2F84F); }
+.theme-option-title { font-weight: 600; font-size: 14px; color: var(--text); }
+.theme-option-desc { display: block; font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+

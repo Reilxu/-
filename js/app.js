@@ -36,6 +36,7 @@ const App = {
   init() {
     Store.init();
     this.detectMobile();
+    this.initTheme();
     this.loadWeather();
     this.renderSidebarNav();
     this.renderBottomNav();
@@ -4201,6 +4202,25 @@ const App = {
       </div>
 
       <div class="settings-section">
+        <div class="settings-section-header">${Icons.palette || '🎨'} 外观主题</div>
+        <div class="settings-section-body">
+          <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:10px;">
+            <div class="settings-row-desc">切换工作台的整体视觉风格，选择后立即生效，并自动记住你的偏好。</div>
+            <label class="theme-option">
+              <input type="radio" name="themeChoice" value="brutalism" ${((localStorage.getItem('xl_theme')) || 'brutalism') === 'brutalism' ? 'checked' : ''}>
+              <span class="theme-option-title">Neo-brutalism 版</span>
+              <span class="theme-option-desc">奶油底 + 黑边硬阴影 + 直角（当前默认）</span>
+            </label>
+            <label class="theme-option">
+              <input type="radio" name="themeChoice" value="classic" ${((localStorage.getItem('xl_theme')) || 'brutalism') === 'classic' ? 'checked' : ''}>
+              <span class="theme-option-title">经典版</span>
+              <span class="theme-option-desc">暖白底 + 亮绿 + 大圆角（早期风格）</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <div class="settings-section-header">${Icons.help} 使用说明</div>
         <div class="settings-section-body" style="padding:16px 18px;">
           <div style="font-size:13px;line-height:1.8;color:var(--text);">
@@ -4262,6 +4282,13 @@ const App = {
 
     // Clear data
     document.getElementById('clearDataBtn')?.addEventListener('click', () => this.confirmClearData());
+
+    // Theme switch (前端双 UI：经典版 / Neo-brutalism)
+    document.querySelectorAll('input[name="themeChoice"]').forEach((r) => {
+      r.addEventListener('change', (e) => {
+        if (e.target.checked) this.onThemeChange(e.target.value);
+      });
+    });
   },
 
   saveUserInfo() {
@@ -4269,6 +4296,34 @@ const App = {
     const workType = document.getElementById('setWorkType')?.value;
     Store.saveSettings({ userName, workType });
     this.showToast('已保存');
+  },
+
+  // ===== 主题切换（前端双 UI：经典版 / Neo-brutalism）=====
+  // 经典版 = style.css 基础层；Neo-brutalism = 在 style.css 之后加载的覆盖层。
+  // 切换只需控制 neo-brutalism.css 这个 <link> 是否生效，不动任何 CSS/JS 逻辑。
+  initTheme() {
+    const saved = (typeof localStorage !== 'undefined' && localStorage.getItem('xl_theme')) || 'brutalism';
+    this.applyTheme(saved, false);
+  },
+
+  applyTheme(theme, persist) {
+    if (persist !== false) {
+      try { localStorage.setItem('xl_theme', theme); } catch (e) {}
+    }
+    const link = document.getElementById('themeBrutalism');
+    if (link) link.disabled = (theme !== 'brutalism');
+    // 同步设置页的选中态（若当前在设置页）
+    const sel = document.querySelector('input[name="themeChoice"]');
+    if (sel && document.querySelector(`input[name="themeChoice"][value="${theme}"]`)) {
+      document.querySelector(`input[name="themeChoice"][value="${theme}"]`).checked = true;
+    }
+  },
+
+  // 用户已在设置页点击主题选项
+  onThemeChange(theme) {
+    this.applyTheme(theme, true);
+    const label = theme === 'brutalism' ? 'Neo-brutalism 版' : '经典版';
+    this.showToast('已切换到' + label);
   },
 
   saveDeepseekConfig() {

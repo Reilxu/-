@@ -264,6 +264,17 @@ const ModuleConfig = {
   // 更新日志
   updateLogs: [
     {
+      date: '2026-08-12',
+      version: 'v3.3.55',
+      content: `v3.3.55更新。
+- 新增「外观主题」切换功能：设置页可一键在「经典版」与「Neo-brutalism 版」两套 UI 之间切换，选择后立即生效并自动记住偏好
+- 两套 UI 复用既有架构：经典版 = css/style.css 基础层（暖白底 + 亮绿 + 大圆角）；Neo-brutalism 版 = 在 style.css 之后加载的 css/neo-brutalism.css 覆盖层。切换仅控制该覆盖层 <link> 是否生效，不动任何 CSS/JS 逻辑
+- 防闪烁：index.html 在 body 渲染前用内联脚本读取 localStorage 的 xl_theme，避免经典版下先闪 Neo 再切换
+- 经典版补全图片类元素基础尺寸（糖罐/扭蛋机/习惯图标），关闭覆盖层后也能正常显示不被拉伸
+- 缓存版本 ?v=86 → ?v=87`,
+      impact: '工作台支持前端双主题切换，用户可自由在经典版与 Neo-brutalism 版之间选择视觉风格',
+    },
+    {
       date: '2026-08-11',
       version: 'v3.3.54',
       content: `v3.3.54更新。

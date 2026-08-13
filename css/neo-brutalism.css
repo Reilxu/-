@@ -480,3 +480,10 @@ input[type=text]:focus,input[type=search]:focus,textarea:focus,select:focus{
   /* 顶栏在移动端与内容同宽，已有 16px 边距，无需再撑满 */
   .topbar{margin:0 12px !important}
 }
+
+/* 设置页 · 外观主题选项（直角 + 硬阴影，贴合 Neo-brutalism） */
+.theme-option{border-radius:0 !important;border:3px solid #000 !important;box-shadow:4px 4px 0 0 #000 !important;background:#fff !important}
+.theme-option:hover{border-color:#000 !important;box-shadow:6px 6px 0 0 #000 !important}
+.theme-option input[type="radio"]{accent-color:#FF6B6B !important}
+.theme-option-title{color:#000 !important}
+.theme-option-desc{color:rgba(0,0,0,.6) !important}
